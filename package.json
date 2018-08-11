@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server --config ./webpack.config.js --mode development",
+    "start": "node server.js",
     "build": "webpack --mode=production",
+    "postinstall": "npm run build",
+    "dev": "webpack-dev-server --config ./webpack.config.js --mode development",
     "test": "eslint ."
   },
   "keywords": [],
@@ -40,6 +42,7 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-runtime": "^6.26.0",
     "copy-to-clipboard": "^3.0.8",
+    "express": "^4.16.3",
     "prop-types": "^15.6.2",
     "react": "^16.4.2",
     "react-bootstrap": "^0.32.1",
