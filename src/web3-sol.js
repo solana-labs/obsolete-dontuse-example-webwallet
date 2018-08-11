@@ -20,19 +20,19 @@ export class Web3Sol {
 
   async getPublicKey() {
     await sleep(500); // TODO
-    this._publicKey = 'EJeyhbqwYBvoAbC1pfxiHJRrV5CZu3MZzP8kBu3sKthY'; // TODO
+    this.publicKey = 'EJeyhbqwYBvoAbC1pfxiHJRrV5CZu3MZzP8kBu3sKthY'; // TODO
 
-    return this._publicKey;
+    return this.publicKey;
   }
 
   async getBalance() {
     await sleep(500); // TODO
-    return this._balance;
+    return this.balance;
   }
 
   async requestAirdrop(amount) {
     await sleep(500); // TODO
-    this._balance += amount;
+    this.balance += amount;
   }
 
   async sendTokens(to, amount) {
