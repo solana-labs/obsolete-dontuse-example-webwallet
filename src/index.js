@@ -214,8 +214,8 @@ class App extends React.Component {
 
   componentDidMount() {
     this.runModal(
-      'Initializing...',
-      'Please wait...',
+      'Initializing',
+      'Please wait while your wallet is initialized...',
       async () => {
         const {web3sol} = this.state;
         this.setState({

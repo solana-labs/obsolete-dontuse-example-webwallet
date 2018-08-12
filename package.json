@@ -41,11 +41,13 @@
   "dependencies": {
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-runtime": "^6.26.0",
+    "bs58": "^4.0.1",
     "copy-to-clipboard": "^3.0.8",
     "express": "^4.16.3",
     "prop-types": "^15.6.2",
     "react": "^16.4.2",
     "react-bootstrap": "^0.32.1",
-    "react-dom": "^16.4.2"
+    "react-dom": "^16.4.2",
+    "tweetnacl": "^1.0.0"
   }
 }
