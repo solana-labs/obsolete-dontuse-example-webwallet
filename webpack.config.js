@@ -1,5 +1,7 @@
 /* eslint import/no-commonjs:0 */
 const webpack = require('webpack');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+
 module.exports = {
   entry: './src/index.js',
   module: {
@@ -14,7 +16,11 @@ module.exports = {
         exclude: /node_modules/,
         use: ['babel-loader', 'eslint-loader']
       },
-    ]
+      {
+        test: /\.css$/,
+        use: [ 'style-loader', 'css-loader' ]
+      },
+   ]
   },
   resolve: {
     extensions: ['*', '.js', '.jsx']
@@ -25,7 +31,8 @@ module.exports = {
     filename: 'bundle.js'
   },
   plugins: [
-    new webpack.HotModuleReplacementPlugin()
+    new MonacoWebpackPlugin(),
+    new webpack.HotModuleReplacementPlugin(),
   ],
   devServer: {
     contentBase: './dist',
