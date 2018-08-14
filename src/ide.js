@@ -171,8 +171,8 @@ export class Ide extends React.Component {
           </Nav>
           <Nav pullRight>
             <NavDropdown eventKey={4} title="Language" id="basic-nav-dropdown">
-              <MenuItem eventKey={4.1}>Rust</MenuItem>
-              <MenuItem eventKey={4.2}>C</MenuItem>
+              <MenuItem eventKey={4.1} onClick={() => alert('TODO: Switch to Rust mode')}>Rust</MenuItem>
+              <MenuItem eventKey={4.2} onClick={() => alert('TODO: Switch to C mode')}>C</MenuItem>
             </NavDropdown>
             <NavItem eventKey={5} onClick={() => alert('settings')}>
               &nbsp; Editor Settings
