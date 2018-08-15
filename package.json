@@ -7,7 +7,7 @@
     "start": "node server.js",
     "build": "webpack --mode=production",
     "postinstall": "npm run build",
-    "dev": "webpack-dev-server --config ./webpack.config.js --mode development --host 0.0.0.0",
+    "dev": "webpack-dev-server --config ./webpack.config.js --mode development",
     "test": "eslint ."
   },
   "keywords": [],
