@@ -146,35 +146,17 @@ export class Ide extends React.Component {
   render() {
     return (
       <div style={{height: '100%'}}>
-        <Navbar staticTop style={{marginBottom: '0', border: '0'}}>
-          <Navbar.Header>
-            <Navbar.Brand>
-              <a href="#">Solana Program Editor</a>
-            </Navbar.Brand>
-          </Navbar.Header>
-          <Nav>
-            <NavItem eventKey={1} onClick={() => alert('TOOD: Save program source on server, update URL to include saved program for sharing')}>
-              <Glyphicon glyph="cloud-upload" />
-              &nbsp; Save
-            </NavItem>
-            <NavItem eventKey={2} onClick={() => alert('TODO: Submit program to be built, report results in console.')}>
-              <Glyphicon glyph="play" />
-              &nbsp; Build
-            </NavItem>
-            <NavItem eventKey={3} onClick={() => alert('TODO: Deploy the program to the testnet')}>
-              <Glyphicon glyph="link" />
-              &nbsp; Deploy
-            </NavItem>
-          </Nav>
-          <Nav pullRight>
-            <NavItem eventKey={5} onClick={() => alert('settings')}>
-              Editor Settings
-            </NavItem>
-            <NavItem eventKey={6}>
-              <Link to="/wallet">Wallet</Link>
-            </NavItem>
-          </Nav>
-        </Navbar>
+        <Nav bsStyle="tabs">
+          <NavItem eventKey={1}>
+            <Link to="">Editor</Link>
+          </NavItem>
+          <NavItem eventKey={2}>
+            <Link to="/wallet">Wallet</Link>
+          </NavItem>
+          <NavItem eventKey={3}>
+            <Link to="/settings">Settings</Link>
+          </NavItem>
+        </Nav>
         <div style={{height: '100%', display: 'flex', backgroundColor: '#f8f8f8'}}>
           <div style={{height: '100%', width:'350px'}}>
             <div style={{height: 'calc(100% - 100px)', width:'330px', margin:'10px'}}>
@@ -200,6 +182,30 @@ export class Ide extends React.Component {
           </div>
           <div style={{height: '100%', width: '100%'}}>
             <div style={{height: 'calc(100% - 200px)', width: '100%'}}>
+              <Navbar staticTop style={{marginBottom: '0', border: '0'}}>
+                <Nav>
+                  <NavItem eventKey={1} onClick={() => alert('TOOD: Save program source on server, update URL to include saved program for sharing')}>
+                    <Glyphicon glyph="cloud-upload" />
+                    &nbsp; Save
+                  </NavItem>
+                  <NavItem eventKey={2} onClick={() => alert('TODO: Submit program to be built, report results in console.')}>
+                    <Glyphicon glyph="play" />
+                    &nbsp; Build
+                  </NavItem>
+                  <NavItem eventKey={3} onClick={() => alert('TODO: Deploy the program to the testnet')}>
+                    <Glyphicon glyph="link" />
+                    &nbsp; Deploy
+                  </NavItem>
+                </Nav>
+                <Nav pullRight>
+                  <NavItem eventKey={6} href="/wallet">
+                    Wallet
+                  </NavItem>
+                  <NavItem eventKey={5} onClick={() => alert('settings')}>
+                    Settings
+                  </NavItem>
+                </Nav>
+              </Navbar>
               <CodeEditor />
             </div>
             <div style={{height: '200px', width: '100%'}}>
