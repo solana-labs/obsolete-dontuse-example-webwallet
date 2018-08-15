@@ -29,6 +29,9 @@ const Header = () => (
 );
 
 const Settings = () => (
+  // * Account management (keypair)
+  // * Network URL
+  // * Editor configuration
   <Jumbotron>
     <h1>Settings</h1>
     <p>

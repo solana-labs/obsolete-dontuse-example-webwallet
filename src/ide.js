@@ -13,6 +13,7 @@ import {
   OverlayTrigger,
 } from 'react-bootstrap';
 import MonacoEditor from 'react-monaco-editor';
+import ReactResizeDetector from 'react-resize-detector';
 
 const keygen_rs = `
 // Contents of https://github.com/solana-labs/solana/blob/master/src/bin/keygen.rs
@@ -106,6 +107,17 @@ class Output extends React.Component {
     output: [...Array(25).keys()].reduce((s, i) => s + `Build or deploy result ${i} with a link: http://solana.com\n`, ''),
   }
 
+  updateDimensions() {
+    console.log('UPDATE Output DIMENSIONS');
+    this.editor.layout();
+  }
+
+  editorDidMount(editor) {
+    // eslint-disable-next-line no-console
+    console.log('editorDidMount', editor, editor.getValue(), editor.getModel());
+    this.editor = editor;
+  }
+
   render() {
     const {output} = this.state;
     const options = {
@@ -119,14 +131,18 @@ class Output extends React.Component {
     };
 
     return (
-      <MonacoEditor
-        language="shell"
-        value={output + '\nfin'}
-        options={options}
-      />
+      <ReactResizeDetector handleWidth handleHeight onResize={::this.updateDimensions}>
+        <MonacoEditor
+          language="shell"
+          value={output + '\nfin'}
+          options={options}
+          editorDidMount={::this.editorDidMount}
+        />
+      </ReactResizeDetector>
     );
   }
 }
+
 
 class CodeEditor extends React.Component {
   constructor(props) {
@@ -136,11 +152,16 @@ class CodeEditor extends React.Component {
     };
   }
 
-  onChange = (newValue, e) => {
+  updateDimensions() {
+    console.log('UPDATE CodeEditor DIMENSIONS');
+    this.editor.layout();
+  }
+
+  onChange(newValue, e) {
     console.log('onChange', newValue, e); // eslint-disable-line no-console
   }
 
-  editorDidMount = (editor) => {
+  editorDidMount(editor) {
     // eslint-disable-next-line no-console
     console.log('editorDidMount', editor, editor.getValue(), editor.getModel());
     this.editor = editor;
@@ -165,26 +186,39 @@ class CodeEditor extends React.Component {
       scrollBeyondLastLine: false,
     };
     return (
-      <MonacoEditor
-        language="rust" // c
-        value={code}
-        options={options}
-        onChange={this.onChange}
-        editorDidMount={this.editorDidMount}
-      />
+      <ReactResizeDetector handleWidth handleHeight onResize={::this.updateDimensions}>
+        <MonacoEditor
+          language="rust" // c
+          value={code}
+          options={options}
+          onChange={::this.onChange}
+          editorDidMount={::this.editorDidMount}
+        />
+      </ReactResizeDetector>
     );
   }
 }
 
+export class LeftPanel extends React.Component {
+  state = {
+    show: true,
+  };
 
-export class Ide extends React.Component {
+  onHide() {
+    this.setState({show: false});
+  }
+
+  onShow() {
+    this.setState({show: true});
+  }
+
   render() {
-    const hidePanelTooltip = (
-      <Tooltip id="hidePanelTooltip">Hide panel</Tooltip>
-    );
+    if (this.state.show) {
+      const hidePanelTooltip = (
+        <Tooltip id="hidePanelTooltip">Hide panel</Tooltip>
+      );
 
-    return (
-      <div style={{height: '95%', display: 'flex', borderColor: 'red', borderWidth: '10', backgroundColor: '#f8f8f8'}}>
+      return (
         <div>
           <div style={{height: '50%', width:'330px', margin:'10px'}}>
             <FormGroup>
@@ -204,11 +238,35 @@ export class Ide extends React.Component {
             </FormGroup>
           </div>
           <div style={{height: '100px', float: 'right'}}>
-            <OverlayTrigger placement="top" overlay={hidePanelTooltip}>
-              <Glyphicon glyph="chevron-left"  bsSize="xsmall" onClick={() => alert('TODO: Colapse left pane')}/>
+            <OverlayTrigger placement="right" overlay={hidePanelTooltip}>
+              <Glyphicon glyph="chevron-left"  bsSize="xsmall" onClick={::this.onHide} />
             </OverlayTrigger>
           </div>
         </div>
+      );
+    } else {
+      const showPanelTooltip = (
+        <Tooltip id="showPanelTooltip">Show panel</Tooltip>
+      );
+      return (
+        <div style={{display: 'table', height: '100%'}}>
+          <div style={{display: 'table-cell', verticalAlign: 'middle'}}>
+            <OverlayTrigger placement="right" overlay={showPanelTooltip}>
+              <Glyphicon glyph="chevron-right"  bsSize="xsmall" onClick={::this.onShow} />
+            </OverlayTrigger>
+          </div>
+        </div>
+      );
+    }
+  }
+}
+
+
+export class Ide extends React.Component {
+  render() {
+    return (
+      <div style={{height: '95%', width: '100%', display: 'flex', borderColor: 'red', borderWidth: '10', backgroundColor: '#f8f8f8'}}>
+        <LeftPanel />
         <div style={{width: '100%', display: 'flex', flexDirection: 'column'}}>
           <div style={{width: '0px'}}>
             <Navbar style={{marginBottom: '0', border: '0'}}>
@@ -228,11 +286,11 @@ export class Ide extends React.Component {
               </Nav>
             </Navbar>
           </div>
-          <div style={{height: '100%'}}>
+          <div style={{height: '100%', width: '100%'}}>
             <CodeEditor />
           </div>
           <OutputHeader />
-          <div style={{height: '200px'}}>
+          <div style={{height: '200px', width: '100%'}}>
             <Output/>
           </div>
         </div>
