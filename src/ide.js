@@ -9,9 +9,10 @@ import {
   FormControl,
   FormGroup,
   DropdownButton,
+  Tooltip,
+  OverlayTrigger,
 } from 'react-bootstrap';
 import MonacoEditor from 'react-monaco-editor';
-import {Link} from 'react-router-dom';
 
 const keygen_rs = `
 // Contents of https://github.com/solana-labs/solana/blob/master/src/bin/keygen.rs
@@ -68,8 +69,39 @@ fn main() -> Result<(), Box<error::Error>> {
 }
 `;
 
+class OutputHeader extends React.Component {
+  render() {
+    const clearTooltip = (
+      <Tooltip id="clearTooltip">Clear output</Tooltip>
+    );
+    const closeTooltip = (
+      <Tooltip id="closeTooltip">Close</Tooltip>
+    );
 
-class Console extends React.Component {
+    return (
+      <div>
+        <div style={{float: 'left', paddingLeft: '10px'}}>
+          <b>Output</b>
+        </div>
+        <div style={{float: 'right', paddingRight: '10px'}}>
+          <OverlayTrigger placement="top" overlay={clearTooltip}>
+            <Button bsSize="xsmall" onClick={() => alert('TODO: Clear output pane')}>
+              <Glyphicon glyph="ban-circle"/>
+            </Button>
+          </OverlayTrigger>
+          &nbsp;
+          <OverlayTrigger placement="top" overlay={closeTooltip}>
+            <Button bsSize="xsmall" onClick={() => alert('TODO: Hide output pane')}>
+              <Glyphicon glyph="remove"/>
+            </Button>
+          </OverlayTrigger>
+        </div>
+      </div>
+    );
+  }
+}
+
+class Output extends React.Component {
   state = {
     output: [...Array(25).keys()].reduce((s, i) => s + `Build or deploy result ${i} with a link: http://solana.com\n`, ''),
   }
@@ -83,7 +115,9 @@ class Console extends React.Component {
         enabled: false,
       },
       readOnly: true,
+      scrollBeyondLastLine: false,
     };
+
     return (
       <MonacoEditor
         language="shell"
@@ -142,86 +176,64 @@ class CodeEditor extends React.Component {
   }
 }
 
+
 export class Ide extends React.Component {
   render() {
+    const hidePanelTooltip = (
+      <Tooltip id="hidePanelTooltip">Hide panel</Tooltip>
+    );
+
     return (
-      <div style={{height: '100%'}}>
-        <Nav bsStyle="tabs">
-          <NavItem eventKey={1}>
-            <Link to="">Editor</Link>
-          </NavItem>
-          <NavItem eventKey={2}>
-            <Link to="/wallet">Wallet</Link>
-          </NavItem>
-          <NavItem eventKey={3}>
-            <Link to="/settings">Settings</Link>
-          </NavItem>
-        </Nav>
-        <div style={{height: '100%', display: 'flex', backgroundColor: '#f8f8f8'}}>
-          <div style={{height: '100%', width:'350px'}}>
-            <div style={{height: 'calc(100% - 100px)', width:'330px', margin:'10px'}}>
-              <FormGroup>
-                <FormControl
-                  type="text"
-                  value=""
-                  placeholder="Untitled"
-                />
-                &nbsp;
-                <FormControl style={{resize: 'none'}} componentClass="textarea" rows="3" placeholder="No description" />
-                <br/>
-                Language: &nbsp;
-                <DropdownButton title="Rust">
-                  <MenuItem eventKey="1">Rust</MenuItem>
-                  <MenuItem eventKey="2">C</MenuItem>
-                </DropdownButton>
-              </FormGroup>
-            </div>
-            <div style={{height: '100px', float: 'right'}}>
-              <Glyphicon glyph="chevron-left"  bsSize="xsmall" onClick={() => alert('TODO: Colapse left pane')}/>
-            </div>
+      <div style={{height: '95%', display: 'flex', borderColor: 'red', borderWidth: '10', backgroundColor: '#f8f8f8'}}>
+        <div>
+          <div style={{height: '50%', width:'330px', margin:'10px'}}>
+            <FormGroup>
+              <FormControl
+                type="text"
+                value=""
+                placeholder="Untitled"
+              />
+              &nbsp;
+              <FormControl style={{resize: 'none'}} componentClass="textarea" rows="3" placeholder="No description" />
+              <br/>
+              Language: &nbsp;
+              <DropdownButton title="Rust">
+                <MenuItem eventKey="1">Rust</MenuItem>
+                <MenuItem eventKey="2">C</MenuItem>
+              </DropdownButton>
+            </FormGroup>
           </div>
-          <div style={{height: '100%', width: '100%'}}>
-            <div style={{height: 'calc(100% - 200px)', width: '100%'}}>
-              <Navbar staticTop style={{marginBottom: '0', border: '0'}}>
-                <Nav>
-                  <NavItem eventKey={1} onClick={() => alert('TOOD: Save program source on server, update URL to include saved program for sharing')}>
-                    <Glyphicon glyph="cloud-upload" />
-                    &nbsp; Save
-                  </NavItem>
-                  <NavItem eventKey={2} onClick={() => alert('TODO: Submit program to be built, report results in console.')}>
-                    <Glyphicon glyph="play" />
-                    &nbsp; Build
-                  </NavItem>
-                  <NavItem eventKey={3} onClick={() => alert('TODO: Deploy the program to the testnet')}>
-                    <Glyphicon glyph="link" />
-                    &nbsp; Deploy
-                  </NavItem>
-                </Nav>
-                <Nav pullRight>
-                  <NavItem eventKey={6} href="/wallet">
-                    Wallet
-                  </NavItem>
-                  <NavItem eventKey={5} onClick={() => alert('settings')}>
-                    Settings
-                  </NavItem>
-                </Nav>
-              </Navbar>
-              <CodeEditor />
-            </div>
-            <div style={{height: '200px', width: '100%'}}>
-              <div style={{display: 'inline-block', width: '100%', paddingTop: '5px'}}>
-                <div style={{float: 'left', paddingLeft: '10px'}}>
-                  <b>Output</b>
-                </div>
-                <div style={{float: 'right', paddingRight: '10px'}}>
-                  <Button bsSize="xsmall" onClick={() => alert('TODO: Clear output pane')}>Clear</Button>
-                  &nbsp;
-                  &nbsp;
-                  <Glyphicon glyph="remove" onClick={() => alert('TODO: Close output pane')}/>
-                </div>
-              </div>
-              <Console />
-            </div>
+          <div style={{height: '100px', float: 'right'}}>
+            <OverlayTrigger placement="top" overlay={hidePanelTooltip}>
+              <Glyphicon glyph="chevron-left"  bsSize="xsmall" onClick={() => alert('TODO: Colapse left pane')}/>
+            </OverlayTrigger>
+          </div>
+        </div>
+        <div style={{width: '100%', display: 'flex', flexDirection: 'column'}}>
+          <div style={{width: '0px'}}>
+            <Navbar style={{marginBottom: '0', border: '0'}}>
+              <Nav>
+                <NavItem eventKey={1} onClick={() => alert('TOOD: Save program source on server, update URL to include saved program for sharing')}>
+                  <Glyphicon glyph="cloud-upload" />
+                  &nbsp; Save
+                </NavItem>
+                <NavItem eventKey={2} onClick={() => alert('TODO: Submit program to be built, report results in console.')}>
+                  <Glyphicon glyph="play" />
+                  &nbsp; Build
+                </NavItem>
+                <NavItem eventKey={3} onClick={() => alert('TODO: Deploy the program to the testnet')}>
+                  <Glyphicon glyph="link" />
+                  &nbsp; Deploy
+                </NavItem>
+              </Nav>
+            </Navbar>
+          </div>
+          <div style={{height: '100%'}}>
+            <CodeEditor />
+          </div>
+          <OutputHeader />
+          <div style={{height: '200px'}}>
+            <Output/>
           </div>
         </div>
       </div>
