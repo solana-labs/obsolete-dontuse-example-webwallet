@@ -14,6 +14,7 @@ import {
 } from 'react-bootstrap';
 import MonacoEditor from 'react-monaco-editor';
 import ReactResizeDetector from 'react-resize-detector';
+import PropTypes from 'prop-types';
 
 const keygen_rs = `
 // Contents of https://github.com/solana-labs/solana/blob/master/src/bin/keygen.rs
@@ -71,6 +72,11 @@ fn main() -> Result<(), Box<error::Error>> {
 `;
 
 class OutputHeader extends React.Component {
+  propTypes = {
+    onClear: PropTypes.function,
+    onClose: PropTypes.function,
+  };
+
   render() {
     const clearTooltip = (
       <Tooltip id="clearTooltip">Clear output</Tooltip>
@@ -86,13 +92,13 @@ class OutputHeader extends React.Component {
         </div>
         <div style={{float: 'right', paddingRight: '10px'}}>
           <OverlayTrigger placement="top" overlay={clearTooltip}>
-            <Button bsSize="xsmall" onClick={() => alert('TODO: Clear output pane')}>
+            <Button bsSize="xsmall" onClick={this.props.onClear}>
               <Glyphicon glyph="ban-circle"/>
             </Button>
           </OverlayTrigger>
           &nbsp;
           <OverlayTrigger placement="top" overlay={closeTooltip}>
-            <Button bsSize="xsmall" onClick={() => alert('TODO: Hide output pane')}>
+            <Button bsSize="xsmall" onClick={this.props.onClose}>
               <Glyphicon glyph="remove"/>
             </Button>
           </OverlayTrigger>
@@ -103,23 +109,21 @@ class OutputHeader extends React.Component {
 }
 
 class Output extends React.Component {
-  state = {
-    output: [...Array(25).keys()].reduce((s, i) => s + `Build or deploy result ${i} with a link: http://solana.com\n`, ''),
-  }
+  propTypes = {
+    outputText: PropTypes.string,
+  };
 
   updateDimensions() {
-    console.log('UPDATE Output DIMENSIONS');
+    console.log('Update Output dimensions...');
     this.editor.layout();
   }
 
   editorDidMount(editor) {
-    // eslint-disable-next-line no-console
     console.log('editorDidMount', editor, editor.getValue(), editor.getModel());
     this.editor = editor;
   }
 
   render() {
-    const {output} = this.state;
     const options = {
       contextmenu: false,
       lineNumbers: 'off',
@@ -134,7 +138,7 @@ class Output extends React.Component {
       <ReactResizeDetector handleWidth handleHeight onResize={::this.updateDimensions}>
         <MonacoEditor
           language="shell"
-          value={output + '\nfin'}
+          value={this.props.outputText}
           options={options}
           editorDidMount={::this.editorDidMount}
         />
@@ -153,16 +157,15 @@ class CodeEditor extends React.Component {
   }
 
   updateDimensions() {
-    console.log('UPDATE CodeEditor DIMENSIONS');
+    console.log('Update CodeEditor Dimensions');
     this.editor.layout();
   }
 
   onChange(newValue, e) {
-    console.log('onChange', newValue, e); // eslint-disable-line no-console
+    console.log('onChange', newValue, e);
   }
 
   editorDidMount(editor) {
-    // eslint-disable-next-line no-console
     console.log('editorDidMount', editor, editor.getValue(), editor.getModel());
     this.editor = editor;
   }
@@ -261,9 +264,37 @@ export class LeftPanel extends React.Component {
   }
 }
 
-
 export class Ide extends React.Component {
+  state = {
+    showOutput: false,
+    outputText: '',
+  };
+
+  onOutputClose() {
+    this.setState({showOutput: false});
+  }
+
+  onOutputClear() {
+    this.setState({outputText: ''});
+  }
+
+  onBuild() {
+    console.log('build');
+    this.setState({
+      showOutput: true,
+      outputText: [...Array(25).keys()].reduce((s, i) => s + `Build result ${i} with a link: http://solana.com\n`, ''),
+    });
+  }
+
+  onDeploy() {
+    this.setState({
+      showOutput: true,
+      outputText: [...Array(25).keys()].reduce((s, i) => s + `Deploy result ${i} with a link: http://solana.com\n`, ''),
+    });
+  }
+
   render() {
+    console.log('render!', this.state.showOutput);
     return (
       <div style={{height: '95%', width: '100%', display: 'flex', borderColor: 'red', borderWidth: '10', backgroundColor: '#f8f8f8'}}>
         <LeftPanel />
@@ -275,11 +306,11 @@ export class Ide extends React.Component {
                   <Glyphicon glyph="cloud-upload" />
                   &nbsp; Save
                 </NavItem>
-                <NavItem eventKey={2} onClick={() => alert('TODO: Submit program to be built, report results in console.')}>
+                <NavItem eventKey={2} onClick={::this.onBuild}>
                   <Glyphicon glyph="play" />
                   &nbsp; Build
                 </NavItem>
-                <NavItem eventKey={3} onClick={() => alert('TODO: Deploy the program to the testnet')}>
+                <NavItem eventKey={3} onClick={::this.onDeploy}>
                   <Glyphicon glyph="link" />
                   &nbsp; Deploy
                 </NavItem>
@@ -289,10 +320,19 @@ export class Ide extends React.Component {
           <div style={{height: '100%', width: '100%'}}>
             <CodeEditor />
           </div>
-          <OutputHeader />
-          <div style={{height: '200px', width: '100%'}}>
-            <Output/>
-          </div>
+          {this.state.showOutput ?
+            <OutputHeader
+              onClear={::this.onOutputClear}
+              onClose={::this.onOutputClose}
+            />
+            : undefined}
+          {this.state.showOutput ?
+            <div style={{height: '200px', width: '100%'}}>
+              <Output
+                outputText={this.state.outputText}
+              />
+            </div>
+            : undefined}
         </div>
       </div>
     );
