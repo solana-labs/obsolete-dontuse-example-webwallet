@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Button,
   Glyphicon,
   Navbar,
   Nav,
@@ -175,22 +176,27 @@ export class Ide extends React.Component {
           </Nav>
         </Navbar>
         <div style={{height: '100%', display: 'flex', backgroundColor: '#f8f8f8'}}>
-          <div style={{height: '100%', width:'350px', margin:'10px'}}>
-            <FormGroup>
-              <FormControl
-                type="text"
-                value=""
-                placeholder="Untitled"
-              />
-              &nbsp;
-              <FormControl style={{resize: 'none'}} componentClass="textarea" rows="3" placeholder="No description" />
-              <br/>
-              Language: &nbsp;
-              <DropdownButton title="Rust">
-                <MenuItem eventKey="1">Rust</MenuItem>
-                <MenuItem eventKey="2">C</MenuItem>
-              </DropdownButton>
-            </FormGroup>
+          <div style={{height: '100%', width:'350px'}}>
+            <div style={{height: 'calc(100% - 100px)', width:'330px', margin:'10px'}}>
+              <FormGroup>
+                <FormControl
+                  type="text"
+                  value=""
+                  placeholder="Untitled"
+                />
+                &nbsp;
+                <FormControl style={{resize: 'none'}} componentClass="textarea" rows="3" placeholder="No description" />
+                <br/>
+                Language: &nbsp;
+                <DropdownButton title="Rust">
+                  <MenuItem eventKey="1">Rust</MenuItem>
+                  <MenuItem eventKey="2">C</MenuItem>
+                </DropdownButton>
+              </FormGroup>
+            </div>
+            <div style={{height: '100px', float: 'right'}}>
+              <Glyphicon glyph="chevron-left"  bsSize="xsmall" onClick={() => alert('TODO: Colapse left pane')}/>
+            </div>
           </div>
           <div style={{height: '100%', width: '100%'}}>
             <div style={{height: 'calc(100% - 200px)', width: '100%'}}>
@@ -199,10 +205,13 @@ export class Ide extends React.Component {
             <div style={{height: '200px', width: '100%'}}>
               <div style={{display: 'inline-block', width: '100%', paddingTop: '5px'}}>
                 <div style={{float: 'left', paddingLeft: '10px'}}>
-                  <b>Build Output</b>
+                  <b>Output</b>
                 </div>
                 <div style={{float: 'right', paddingRight: '10px'}}>
-                  <Glyphicon glyph="remove" onClick={() => alert('TODO: Close build output pane')}/>
+                  <Button bsSize="xsmall" onClick={() => alert('TODO: Clear output pane')}>Clear</Button>
+                  &nbsp;
+                  &nbsp;
+                  <Glyphicon glyph="remove" onClick={() => alert('TODO: Close output pane')}/>
                 </div>
               </div>
               <Console />
