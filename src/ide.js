@@ -4,10 +4,10 @@ import {
   Navbar,
   Nav,
   NavItem,
-  NavDropdown,
   MenuItem,
   FormControl,
   FormGroup,
+  DropdownButton,
 } from 'react-bootstrap';
 import MonacoEditor from 'react-monaco-editor';
 import {Link} from 'react-router-dom';
@@ -82,21 +82,17 @@ class Console extends React.Component {
         enabled: false,
       },
       readOnly: true,
-      scrollBeyondLastLine: false,
     };
     return (
       <MonacoEditor
-        border="1"
-        width="100%"
         language="shell"
-        value={output}
+        value={output + '\nfin'}
         options={options}
       />
     );
   }
 }
 
-//import {WalletApp} from './walletapp';
 class CodeEditor extends React.Component {
   constructor(props) {
     super(props);
@@ -170,12 +166,11 @@ export class Ide extends React.Component {
             </NavItem>
           </Nav>
           <Nav pullRight>
-            <NavDropdown eventKey={4} title="Language" id="basic-nav-dropdown">
-              <MenuItem eventKey={4.1} onClick={() => alert('TODO: Switch to Rust mode')}>Rust</MenuItem>
-              <MenuItem eventKey={4.2} onClick={() => alert('TODO: Switch to C mode')}>C</MenuItem>
-            </NavDropdown>
             <NavItem eventKey={5} onClick={() => alert('settings')}>
-              &nbsp; Editor Settings
+              Editor Settings
+            </NavItem>
+            <NavItem eventKey={6}>
+              <Link to="/wallet">Wallet</Link>
             </NavItem>
           </Nav>
         </Navbar>
@@ -190,15 +185,26 @@ export class Ide extends React.Component {
               &nbsp;
               <FormControl style={{resize: 'none'}} componentClass="textarea" rows="3" placeholder="No description" />
               <br/>
-              <br/>
-              <Link to="/wallet">Wallet</Link>
+              Language: &nbsp;
+              <DropdownButton title="Rust">
+                <MenuItem eventKey="1">Rust</MenuItem>
+                <MenuItem eventKey="2">C</MenuItem>
+              </DropdownButton>
             </FormGroup>
           </div>
-          <div style={{height: '100%', width: '100%', display: 'flex', flexDirection: 'column'}}>
-            <div style={{height: '80%', width: '100%'}}>
+          <div style={{height: '100%', width: '100%'}}>
+            <div style={{height: 'calc(100% - 200px)', width: '100%'}}>
               <CodeEditor />
             </div>
-            <div style={{height: '20%', width: '100%', borderColor: 'lightgrey', borderTopStyle: 'solid'}}>
+            <div style={{height: '200px', width: '100%'}}>
+              <div style={{display: 'inline-block', width: '100%', paddingTop: '5px'}}>
+                <div style={{float: 'left', paddingLeft: '10px'}}>
+                  <b>Build Output</b>
+                </div>
+                <div style={{float: 'right', paddingRight: '10px'}}>
+                  <Glyphicon glyph="remove" onClick={() => alert('TODO: Close build output pane')}/>
+                </div>
+              </div>
               <Console />
             </div>
           </div>
