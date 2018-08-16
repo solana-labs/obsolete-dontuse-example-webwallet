@@ -16,89 +16,8 @@ import MonacoEditor from 'react-monaco-editor';
 import ReactResizeDetector from 'react-resize-detector';
 import PropTypes from 'prop-types';
 import {Prompt} from 'react-router-dom';
-import EventEmitter from 'event-emitter';
 
-const keygen_rs = `
-// Contents of https://github.com/solana-labs/solana/blob/master/src/bin/keygen.rs
-#[macro_use]
-extern crate clap;
-extern crate dirs;
-extern crate ring;
-extern crate serde_json;
-
-use clap::{App, Arg};
-use ring::rand::SystemRandom;
-use ring::signature::Ed25519KeyPair;
-use std::error;
-use std::fs::{self, File};
-use std::io::Write;
-use std::path::Path;
-
-fn main() -> Result<(), Box<error::Error>> {
-    let matches = App::new("solana-keygen")
-        .version(crate_version!())
-        .arg(
-            Arg::with_name("outfile")
-                .short("o")
-                .long("outfile")
-                .value_name("PATH")
-                .takes_value(true)
-                .help("path to generated file"),
-        )
-        .get_matches();
-
-    let rnd = SystemRandom::new();
-    let pkcs8_bytes = Ed25519KeyPair::generate_pkcs8(&rnd)?;
-    let serialized = serde_json::to_string(&pkcs8_bytes.to_vec())?;
-
-    let mut path = dirs::home_dir().expect("home directory");
-    let outfile = if matches.is_present("outfile") {
-        matches.value_of("outfile").unwrap()
-    } else {
-        path.extend(&[".config", "solana", "id.json"]);
-        path.to_str().unwrap()
-    };
-
-    if outfile == "-" {
-        println!("{}", serialized);
-    } else {
-        if let Some(outdir) = Path::new(outfile).parent() {
-            fs::create_dir_all(outdir)?;
-        }
-        let mut f = File::create(outfile)?;
-        f.write_all(&serialized.into_bytes())?;
-    }
-
-    Ok(())
-}
-`;
-
-
-class Program {
-  modified = false;
-  language = 'Rust'; // 'C'
-  name = '';
-  description = '';
-  source = '// blah\n' + keygen_rs;
-
-  _ee = new EventEmitter();
-
-  set(key, value) {
-    console.log(`Program: ${key}=${value}`);
-    this[key] = value;
-    this.modified = true;
-    this._ee.emit('modified');
-  }
-
-  on(event, fn) {
-    this._ee.on(event, fn);
-  }
-
-  removeListener(event, fn) {
-    this._ee.removeListener(event, fn);
-  }
-}
-
+import {Program} from './program';
 
 class OutputHeader extends React.Component {
 
@@ -201,7 +120,6 @@ class Output extends React.Component {
 
 class Editor extends React.Component {
   state = {
-    code: keygen_rs,
     editorWidth: '0',
     editorHeight: '0',
   };
@@ -226,18 +144,6 @@ class Editor extends React.Component {
     console.log('editorDidMount', editor, editor.getValue(), editor.getModel());
     this.editor = editor;
   }
-
-  /*
-  changeEditorValue = () => {
-    if (this.editor) {
-      this.editor.setValue('// code changed! \n');
-    }
-  }
-
-  changeBySetState = () => {
-    this.setState({ code: '// code changed by setState! \n' });
-  }
-  */
 
   updateDimensions(width, height) {
     console.log('Updating Editor dimensions to', width, height);
@@ -374,6 +280,7 @@ export class Ide extends React.Component {
     outputText: '',
     leftPanelColapsed: false,
     program: new Program(),
+    saving: false,
   };
 
   forceUpdate = () => {
@@ -382,6 +289,9 @@ export class Ide extends React.Component {
 
   componentDidMount() {
     this.state.program.on('modified', this.forceUpdate);
+    if (this.props.programId) {
+      this.state.program.load(this.props.programId);
+    }
   }
 
   cmponentWillUnmount() {
@@ -394,6 +304,18 @@ export class Ide extends React.Component {
 
   onOutputClear() {
     this.setState({outputText: ''});
+  }
+
+  onSave() {
+    let {program} = this.state;
+    this.setState(
+      {saving: true},
+      () => {
+        program.save();
+        this.props.history.push(program.uri);
+        this.setState({saving: false});
+      }
+    );
   }
 
   onBuild() {
@@ -416,20 +338,23 @@ export class Ide extends React.Component {
   }
 
   render() {
+    const emptySource = this.state.program.source.length === 0;
+    const {modified} = this.state.program;
+    const {saving} = this.state;
+
     const EditorNav = () => (
       <div style={{width: '0px'}}>
         <Navbar style={{marginBottom: '0', border: '0'}}>
           <Nav>
-            <NavItem eventKey={1}
-              onClick={() => alert('TOOD: Save program source on server, update URL to include saved program for sharing')}>
+            <NavItem disabled={!saving && !modified} eventKey={1} onClick={::this.onSave}>
               <Glyphicon glyph="cloud-upload" />
-              &nbsp; Save
+              &nbsp; {this.state.program.uri ? 'Update' : 'Save'}
             </NavItem>
-            <NavItem eventKey={2} onClick={::this.onBuild}>
+            <NavItem disabled={emptySource} eventKey={2} onClick={::this.onBuild}>
               <Glyphicon glyph="play" />
               &nbsp; Build
             </NavItem>
-            <NavItem eventKey={3} onClick={::this.onDeploy}>
+            <NavItem disabled={emptySource} eventKey={3} onClick={::this.onDeploy}>
               <Glyphicon glyph="link" />
               &nbsp; Deploy
             </NavItem>
@@ -447,7 +372,7 @@ export class Ide extends React.Component {
         position: 'relative',
       }}>
         <Prompt
-          when={this.state.program.modified}
+          when={!saving && this.state.program.modified}
           message={() => 'There are unsaved changes that may be lost if you continue.'}
         />
         <LeftPanel
@@ -481,3 +406,7 @@ export class Ide extends React.Component {
     );
   }
 }
+Ide.propTypes = {
+  programId: PropTypes.string,
+  history: PropTypes.object,
+};

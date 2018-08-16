@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import {
   BrowserRouter,
   Link,
+  Switch,
   Route,
 } from 'react-router-dom';
 import {
@@ -45,9 +46,17 @@ ReactDOM.render(
     <div style={{display: 'table', height: '100%', width: '100%'}}>
       <Header />
       <div style={{postition: 'relative', display: 'table-row', height: '100%'}}>
-        <Route exact path='/' component={Ide} />
-        <Route exact path='/wallet' component={WalletApp} />
-        <Route exact path='/settings' component={Settings} />
+        <Switch>
+          <Route path='/wallet' component={WalletApp} />
+          <Route path='/settings' component={Settings} />
+          <Route
+            path='/:programId'
+            component={(router) => {
+              return <Ide history={router.history} programId={router.match.params.programId}/>;
+            }}
+          />
+          <Route path='/' component={Ide} />
+        </Switch>
       </div>
     </div>
   </BrowserRouter>,
