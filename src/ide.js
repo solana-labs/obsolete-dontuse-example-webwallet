@@ -72,10 +72,6 @@ fn main() -> Result<(), Box<error::Error>> {
 `;
 
 class OutputHeader extends React.Component {
-  propTypes = {
-    onClear: PropTypes.function,
-    onClose: PropTypes.function,
-  };
 
   render() {
     const clearTooltip = (
@@ -107,6 +103,10 @@ class OutputHeader extends React.Component {
     );
   }
 }
+OutputHeader.propTypes = {
+  onClear: PropTypes.function,
+  onClose: PropTypes.function,
+};
 
 class Output extends React.Component {
   propTypes = {
@@ -165,18 +165,6 @@ class Output extends React.Component {
           </div>
         </ReactResizeDetector>
       </div>
-    );
-    return (
-      <ReactResizeDetector handleWidth handleHeight onResize={::this.updateDimensions}>
-       <div style={{
-          position: 'fixed',
-          height: '200px',
-          backgroundColor: 'red',
-          overflow: 'hidden',
-        }}>
-          hi
-        </div>
-      </ReactResizeDetector>
     );
   }
 }
@@ -252,7 +240,7 @@ class Editor extends React.Component {
   }
 }
 
-export class LeftPanel extends React.Component {
+class LeftPanel extends React.Component {
   render() {
     if (!this.props.colapsed) {
       const hidePanelTooltip = (
@@ -301,6 +289,12 @@ export class LeftPanel extends React.Component {
     }
   }
 }
+LeftPanel.propTypes = {
+  colapsed: PropTypes.boolean,
+  width: PropTypes.number,
+  onColapse: PropTypes.function,
+};
+
 
 export class Ide extends React.Component {
   state = {
@@ -342,7 +336,7 @@ export class Ide extends React.Component {
         <Navbar style={{marginBottom: '0', border: '0'}}>
           <Nav>
             <NavItem eventKey={1}
-                     onClick={() => alert('TOOD: Save program source on server, update URL to include saved program for sharing')}>
+              onClick={() => alert('TOOD: Save program source on server, update URL to include saved program for sharing')}>
               <Glyphicon glyph="cloud-upload" />
               &nbsp; Save
             </NavItem>
@@ -367,12 +361,11 @@ export class Ide extends React.Component {
         backgroundColor: '#f8f8f8',
         position: 'relative',
       }}>
-        {true ?
         <LeftPanel
           width='350px'
           colapsed={this.state.leftPanelColapsed}
           onColapse={::this.onLeftPanelColapse}
-        /> : undefined}
+        />
         <div style={{
           position: 'relative',
           width: this.state.leftPanelColapsed ? '98%' : 'calc(98% - 350px)',
