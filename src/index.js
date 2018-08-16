@@ -42,11 +42,13 @@ const Settings = () => (
 
 ReactDOM.render(
   <BrowserRouter>
-    <div style={{height: '100%'}}>
+    <div style={{display: 'table', height: '100%', width: '100%'}}>
       <Header />
-      <Route exact path='/' component={Ide} />
-      <Route exact path='/wallet' component={WalletApp} />
-      <Route exact path='/settings' component={Settings} />
+      <div style={{postition: 'relative', display: 'table-row', height: '100%'}}>
+        <Route exact path='/' component={Ide} />
+        <Route exact path='/wallet' component={WalletApp} />
+        <Route exact path='/settings' component={Settings} />
+      </div>
     </div>
   </BrowserRouter>,
   document.getElementById('app'),

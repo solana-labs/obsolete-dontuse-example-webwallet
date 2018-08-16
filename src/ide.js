@@ -113,9 +113,17 @@ class Output extends React.Component {
     outputText: PropTypes.string,
   };
 
-  updateDimensions() {
-    console.log('Update Output dimensions...');
-    this.editor.layout();
+  state = {
+    editorWidth: '0',
+    editorHeight: '200px',
+  };
+
+  updateDimensions(width, height) {
+    console.log('Updating Output dimensions to', width, height);
+    this.setState({
+      editorWidth: width,
+      editorHeight: height,
+    });
   }
 
   editorDidMount(editor) {
@@ -135,31 +143,51 @@ class Output extends React.Component {
     };
 
     return (
+      <div style={{
+        height: '200px',
+      }}>
+        <ReactResizeDetector handleWidth handleHeight onResize={::this.updateDimensions}>
+          <div style={{
+            position: 'fixed',
+            width: this.state.editorWidth,
+            height: this.state.editorHeight,
+            backgroundColor: 'red',
+            overflow: 'hidden',
+          }}>
+            <MonacoEditor
+              width={this.state.editorWidth}
+              height={this.state.editorHeight}
+              language="rust" // c
+              value={this.props.outputText}
+              options={options}
+              editorDidMount={::this.editorDidMount}
+            />
+          </div>
+        </ReactResizeDetector>
+      </div>
+    );
+    return (
       <ReactResizeDetector handleWidth handleHeight onResize={::this.updateDimensions}>
-        <MonacoEditor
-          language="shell"
-          value={this.props.outputText}
-          options={options}
-          editorDidMount={::this.editorDidMount}
-        />
+       <div style={{
+          position: 'fixed',
+          height: '200px',
+          backgroundColor: 'red',
+          overflow: 'hidden',
+        }}>
+          hi
+        </div>
       </ReactResizeDetector>
     );
   }
 }
 
 
-class CodeEditor extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      code: keygen_rs,
-    };
-  }
-
-  updateDimensions() {
-    console.log('Update CodeEditor Dimensions');
-    this.editor.layout();
-  }
+class Editor extends React.Component {
+  state = {
+    code: keygen_rs,
+    editorWidth: '0',
+    editorHeight: '0',
+  };
 
   onChange(newValue, e) {
     console.log('onChange', newValue, e);
@@ -181,49 +209,59 @@ class CodeEditor extends React.Component {
     this.setState({ code: '// code changed by setState! \n' });
   }
   */
+
+  updateDimensions(width, height) {
+    console.log('Updating Editor dimensions to', width, height);
+    this.setState({
+      editorWidth: width,
+      editorHeight: height,
+    });
+  }
+
   render() {
-    const { code } = this.state;
     const options = {
       selectOnLineNumbers: true,
       readOnly: false,
       scrollBeyondLastLine: false,
     };
     return (
-      <ReactResizeDetector handleWidth handleHeight onResize={::this.updateDimensions}>
-        <MonacoEditor
-          language="rust" // c
-          value={code}
-          options={options}
-          onChange={::this.onChange}
-          editorDidMount={::this.editorDidMount}
-        />
-      </ReactResizeDetector>
+      <div style={{
+        flexGrow: 1,
+      }}>
+        <ReactResizeDetector handleWidth handleHeight onResize={::this.updateDimensions}>
+          <div style={{
+            position: 'fixed',
+            width: this.state.editorWidth,
+            height: this.state.editorHeight,
+            backgroundColor: 'red',
+            overflow: 'hidden',
+          }}>
+            <MonacoEditor
+              width={this.state.editorWidth}
+              height={this.state.editorHeight}
+              language="rust" // c
+              value={this.state.code}
+              options={options}
+              onChange={::this.onChange}
+              editorDidMount={::this.editorDidMount}
+            />
+          </div>
+        </ReactResizeDetector>
+      </div>
     );
   }
 }
 
 export class LeftPanel extends React.Component {
-  state = {
-    show: true,
-  };
-
-  onHide() {
-    this.setState({show: false});
-  }
-
-  onShow() {
-    this.setState({show: true});
-  }
-
   render() {
-    if (this.state.show) {
+    if (!this.props.colapsed) {
       const hidePanelTooltip = (
         <Tooltip id="hidePanelTooltip">Hide panel</Tooltip>
       );
 
       return (
         <div>
-          <div style={{height: '50%', width:'330px', margin:'10px'}}>
+          <div style={{height: '50%', width: this.props.width, margin:'10px'}}>
             <FormGroup>
               <FormControl
                 type="text"
@@ -240,9 +278,9 @@ export class LeftPanel extends React.Component {
               </DropdownButton>
             </FormGroup>
           </div>
-          <div style={{height: '100px', float: 'right'}}>
+          <div style={{float: 'right'}}>
             <OverlayTrigger placement="right" overlay={hidePanelTooltip}>
-              <Glyphicon glyph="chevron-left"  bsSize="xsmall" onClick={::this.onHide} />
+              <Glyphicon glyph="chevron-left"  bsSize="xsmall" onClick={() => this.props.onColapse(true)} />
             </OverlayTrigger>
           </div>
         </div>
@@ -255,7 +293,7 @@ export class LeftPanel extends React.Component {
         <div style={{display: 'table', height: '100%'}}>
           <div style={{display: 'table-cell', verticalAlign: 'middle'}}>
             <OverlayTrigger placement="right" overlay={showPanelTooltip}>
-              <Glyphicon glyph="chevron-right"  bsSize="xsmall" onClick={::this.onShow} />
+              <Glyphicon glyph="chevron-right"  bsSize="xsmall" onClick={() => this.props.onColapse(false)} />
             </OverlayTrigger>
           </div>
         </div>
@@ -268,6 +306,7 @@ export class Ide extends React.Component {
   state = {
     showOutput: false,
     outputText: '',
+    leftPanelColapsed: false,
   };
 
   onOutputClose() {
@@ -282,44 +321,67 @@ export class Ide extends React.Component {
     console.log('build');
     this.setState({
       showOutput: true,
-      outputText: [...Array(25).keys()].reduce((s, i) => s + `Build result ${i} with a link: http://solana.com\n`, ''),
+      outputText: [...Array(25).keys()].reduce((s, i) => s + `Build result ${i} with a link: http://solana.com\n`, '') + '\nfin\n',
     });
   }
 
   onDeploy() {
     this.setState({
       showOutput: true,
-      outputText: [...Array(25).keys()].reduce((s, i) => s + `Deploy result ${i} with a link: http://solana.com\n`, ''),
+      outputText: [...Array(25).keys()].reduce((s, i) => s + `Deploy result ${i} with a link: http://solana.com\n`, '') + '\nfin\n',
     });
   }
 
+  onLeftPanelColapse(leftPanelColapsed) {
+    this.setState({leftPanelColapsed});
+  }
+
   render() {
-    console.log('render!', this.state.showOutput);
+    const EditorNav = () => (
+      <div style={{width: '0px'}}>
+        <Navbar style={{marginBottom: '0', border: '0'}}>
+          <Nav>
+            <NavItem eventKey={1}
+                     onClick={() => alert('TOOD: Save program source on server, update URL to include saved program for sharing')}>
+              <Glyphicon glyph="cloud-upload" />
+              &nbsp; Save
+            </NavItem>
+            <NavItem eventKey={2} onClick={::this.onBuild}>
+              <Glyphicon glyph="play" />
+              &nbsp; Build
+            </NavItem>
+            <NavItem eventKey={3} onClick={::this.onDeploy}>
+              <Glyphicon glyph="link" />
+              &nbsp; Deploy
+            </NavItem>
+          </Nav>
+        </Navbar>
+      </div>
+    );
     return (
-      <div style={{height: '95%', width: '100%', display: 'flex', borderColor: 'red', borderWidth: '10', backgroundColor: '#f8f8f8'}}>
-        <LeftPanel />
-        <div style={{width: '100%', display: 'flex', flexDirection: 'column'}}>
-          <div style={{width: '0px'}}>
-            <Navbar style={{marginBottom: '0', border: '0'}}>
-              <Nav>
-                <NavItem eventKey={1} onClick={() => alert('TOOD: Save program source on server, update URL to include saved program for sharing')}>
-                  <Glyphicon glyph="cloud-upload" />
-                  &nbsp; Save
-                </NavItem>
-                <NavItem eventKey={2} onClick={::this.onBuild}>
-                  <Glyphicon glyph="play" />
-                  &nbsp; Build
-                </NavItem>
-                <NavItem eventKey={3} onClick={::this.onDeploy}>
-                  <Glyphicon glyph="link" />
-                  &nbsp; Deploy
-                </NavItem>
-              </Nav>
-            </Navbar>
-          </div>
-          <div style={{height: '100%', width: '100%'}}>
-            <CodeEditor />
-          </div>
+      <div style={{
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'stretch',
+        backgroundColor: '#f8f8f8',
+        position: 'relative',
+      }}>
+        {true ?
+        <LeftPanel
+          width='350px'
+          colapsed={this.state.leftPanelColapsed}
+          onColapse={::this.onLeftPanelColapse}
+        /> : undefined}
+        <div style={{
+          position: 'relative',
+          width: this.state.leftPanelColapsed ? '98%' : 'calc(98% - 350px)',
+          display: 'flex',
+          alignItems: 'stretch',
+          flexDirection: 'column'
+        }}>
+          <EditorNav />
+          <Editor />
           {this.state.showOutput ?
             <OutputHeader
               onClear={::this.onOutputClear}
@@ -327,11 +389,9 @@ export class Ide extends React.Component {
             />
             : undefined}
           {this.state.showOutput ?
-            <div style={{height: '200px', width: '100%'}}>
-              <Output
-                outputText={this.state.outputText}
-              />
-            </div>
+            <Output
+              outputText={this.state.outputText}
+            />
             : undefined}
         </div>
       </div>
