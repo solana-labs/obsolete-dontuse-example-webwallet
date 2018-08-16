@@ -15,6 +15,8 @@ import {
 import MonacoEditor from 'react-monaco-editor';
 import ReactResizeDetector from 'react-resize-detector';
 import PropTypes from 'prop-types';
+import {Prompt} from 'react-router-dom';
+import EventEmitter from 'event-emitter';
 
 const keygen_rs = `
 // Contents of https://github.com/solana-labs/solana/blob/master/src/bin/keygen.rs
@@ -70,6 +72,33 @@ fn main() -> Result<(), Box<error::Error>> {
     Ok(())
 }
 `;
+
+
+class Program {
+  modified = false;
+  language = 'Rust'; // 'C'
+  name = '';
+  description = '';
+  source = '// blah\n' + keygen_rs;
+
+  _ee = new EventEmitter();
+
+  set(key, value) {
+    console.log(`Program: ${key}=${value}`);
+    this[key] = value;
+    this.modified = true;
+    this._ee.emit('modified');
+  }
+
+  on(event, fn) {
+    this._ee.on(event, fn);
+  }
+
+  removeListener(event, fn) {
+    this._ee.removeListener(event, fn);
+  }
+}
+
 
 class OutputHeader extends React.Component {
 
@@ -177,8 +206,20 @@ class Editor extends React.Component {
     editorHeight: '0',
   };
 
-  onChange(newValue, e) {
-    console.log('onChange', newValue, e);
+  forceUpdate = () => {
+    super.forceUpdate();
+  }
+
+  componentDidMount() {
+    this.props.program.on('modified', this.forceUpdate);
+  }
+
+  cmponentWillUnmount() {
+    this.props.program.removeListener('modified', this.forceUpdate);
+  }
+
+  onChange(newValue) {
+    this.props.program.set('source', newValue);
   }
 
   editorDidMount(editor) {
@@ -227,8 +268,8 @@ class Editor extends React.Component {
             <MonacoEditor
               width={this.state.editorWidth}
               height={this.state.editorHeight}
-              language="rust" // c
-              value={this.state.code}
+              language={this.props.program.language.toLowerCase()}
+              value={this.props.program.source}
               options={options}
               onChange={::this.onChange}
               editorDidMount={::this.editorDidMount}
@@ -239,8 +280,27 @@ class Editor extends React.Component {
     );
   }
 }
+Editor.propTypes = {
+  program: PropTypes.object,
+};
 
 class LeftPanel extends React.Component {
+  programSet(key, value) {
+    this.props.program.set(key, value);
+  }
+
+  forceUpdate = () => {
+    super.forceUpdate();
+  }
+
+  componentDidMount() {
+    this.props.program.on('modified', this.forceUpdate);
+  }
+
+  cmponentWillUnmount() {
+    this.props.program.removeListener('modified', this.forceUpdate);
+  }
+
   render() {
     if (!this.props.colapsed) {
       const hidePanelTooltip = (
@@ -253,16 +313,27 @@ class LeftPanel extends React.Component {
             <FormGroup>
               <FormControl
                 type="text"
-                value=""
+                value={this.props.program.name}
                 placeholder="Untitled"
+                onChange={(e) => this.programSet('name', e.target.value)}
               />
               &nbsp;
-              <FormControl style={{resize: 'none'}} componentClass="textarea" rows="3" placeholder="No description" />
+              <FormControl
+                style={{resize: 'none'}}
+                componentClass="textarea"
+                rows="3"
+                value={this.props.program.description}
+                placeholder="No description"
+                onChange={(e) => this.programSet('description', e.target.value)}
+              />
               <br/>
               Language: &nbsp;
-              <DropdownButton title="Rust">
-                <MenuItem eventKey="1">Rust</MenuItem>
-                <MenuItem eventKey="2">C</MenuItem>
+              <DropdownButton
+                title={this.props.program.language}
+                onSelect={(value) => this.programSet('language', value)}
+              >
+                <MenuItem eventKey="Rust">Rust</MenuItem>
+                <MenuItem eventKey="C">C</MenuItem>
               </DropdownButton>
             </FormGroup>
           </div>
@@ -293,6 +364,7 @@ LeftPanel.propTypes = {
   colapsed: PropTypes.boolean,
   width: PropTypes.number,
   onColapse: PropTypes.function,
+  program: PropTypes.object,
 };
 
 
@@ -301,7 +373,20 @@ export class Ide extends React.Component {
     showOutput: false,
     outputText: '',
     leftPanelColapsed: false,
+    program: new Program(),
   };
+
+  forceUpdate = () => {
+    super.forceUpdate();
+  }
+
+  componentDidMount() {
+    this.state.program.on('modified', this.forceUpdate);
+  }
+
+  cmponentWillUnmount() {
+    this.state.program.removeListener('modified', this.forceUpdate);
+  }
 
   onOutputClose() {
     this.setState({showOutput: false});
@@ -361,8 +446,13 @@ export class Ide extends React.Component {
         backgroundColor: '#f8f8f8',
         position: 'relative',
       }}>
+        <Prompt
+          when={this.state.program.modified}
+          message={() => 'There are unsaved changes that may be lost if you continue.'}
+        />
         <LeftPanel
           width='350px'
+          program={this.state.program}
           colapsed={this.state.leftPanelColapsed}
           onColapse={::this.onLeftPanelColapse}
         />
@@ -373,8 +463,8 @@ export class Ide extends React.Component {
           alignItems: 'stretch',
           flexDirection: 'column'
         }}>
-          <EditorNav />
-          <Editor />
+          <EditorNav program={this.state.program} />
+          <Editor program={this.state.program} />
           {this.state.showOutput ?
             <OutputHeader
               onClear={::this.onOutputClear}
