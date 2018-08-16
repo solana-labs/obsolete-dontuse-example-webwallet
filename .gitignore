@@ -2,3 +2,4 @@
 /dist/*bundle.js
 /dist/*worker.js
 *.sw[po]
+/store

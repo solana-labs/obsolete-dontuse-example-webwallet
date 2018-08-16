@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "babel-node server.js",
     "build": "webpack --mode=production",
+    "builddev": "webpack --mode=development",
     "postinstall": "npm run build",
     "dev": "webpack-dev-server --config ./webpack.config.js --mode development",
     "lint": "eslint .",
@@ -14,13 +15,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "babel": {
-    "presets": [
-      "env",
-      "react",
-      "stage-2"
-    ]
-  },
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-eslint": "^8.2.6",
@@ -41,14 +35,21 @@
     "webpack-dev-server": "^3.1.5"
   },
   "dependencies": {
+    "babel-cli": "^6.26.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-runtime": "^6.26.0",
+    "body-parser": "^1.18.3",
     "bs58": "^4.0.1",
     "copy-to-clipboard": "^3.0.8",
     "css-loader": "^1.0.0",
     "event-emitter": "^0.3.5",
     "express": "^4.16.3",
+    "jayson": "^2.0.6",
+    "mkdirp-promise": "^5.0.1",
     "monaco-editor-webpack-plugin": "^1.5.1",
+    "mz": "^2.7.0",
+    "node-fetch": "^2.2.0",
+    "promisify": "0.0.3",
     "prop-types": "^15.6.2",
     "react": "^16.4.2",
     "react-bootstrap": "^0.32.1",
@@ -57,6 +58,7 @@
     "react-resize-detector": "^3.1.1",
     "react-router-dom": "^4.3.1",
     "style-loader": "^0.22.1",
-    "tweetnacl": "^1.0.0"
+    "tweetnacl": "^1.0.0",
+    "unique-filename": "^1.1.0"
   }
 }

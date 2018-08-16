@@ -310,9 +310,13 @@ export class Ide extends React.Component {
     let {program} = this.state;
     this.setState(
       {saving: true},
-      () => {
-        program.save();
-        this.props.history.push(program.uri);
+      async () => {
+        try {
+          await program.save();
+          this.props.history.push(program.uri);
+        } catch (err) {
+          alert(`Failed to save: ${err.message}`);
+        }
         this.setState({saving: false});
       }
     );
