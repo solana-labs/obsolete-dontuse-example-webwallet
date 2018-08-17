@@ -7,6 +7,7 @@ import mkdirp from 'mkdirp-promise';
 import sha256 from 'sha256';
 import base64 from 'base64it';
 import joi from 'joi';
+import Datastore from '@google-cloud/datastore';
 
 const port = process.env.PORT || 8080;
 const app = express();
@@ -25,7 +26,7 @@ const programSchema = joi.object().keys({
   source: joi.string().max(0xffff),
 });
 
-class FileStore {
+class FileBackingStore {
   dir = path.join(__dirname, 'store');
 
   async load(uri) {
@@ -43,7 +44,46 @@ class FileStore {
   }
 }
 
-const store = new FileStore();
+class DataStoreBackingStore {
+  constructor() {
+    const projectId = process.env['DATASTORE_PROJECT_ID'];
+    if (!projectId) {
+      throw new Error('DATASTORE_PROJECT_ID environment variable not found');
+    }
+
+    let credentials;
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+    }
+
+    this.datastore = new Datastore({projectId, credentials});
+    this.kind = 'webide-programs';
+  }
+
+  async load(uri) {
+    const key = this.datastore.key([this.kind, uri]);
+    const results = await this.datastore.get(key);
+    return results[0];
+  }
+
+  async save(uri, program) {
+    const key = this.datastore.key([this.kind, uri]);
+    const value = {
+      key,
+      data: program
+    };
+    await this.datastore.save(value);
+  }
+}
+
+let store;
+try {
+  store = new DataStoreBackingStore();
+  console.log('Using DataStore');
+} catch (err) {
+  console.log('Failed to create DataStoreBackingStore, using FileStore:', err);
+  store = new FileBackingStore();
+}
 
 const rpcServer = jayson.server({
   load: async (args, callback) => {

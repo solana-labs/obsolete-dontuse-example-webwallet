@@ -33,10 +33,6 @@ export class Program {
   _ee = new EventEmitter();
 
   constructor() {
-    this.clear();
-  }
-
-  clear() {
     Object.assign(this, {
       language: 'Rust',
       name: '',
