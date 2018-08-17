@@ -30,20 +30,30 @@ const rpcClient = promisify_jayson(jayson(
 
 export class Program {
   modified = false;
-  language = 'Rust'; // 'C'
-  name = '';
-  description = '';
-  source = '';
-  uri = '';
-
   _ee = new EventEmitter();
+
+  constructor() {
+    this.clear();
+  }
+
+  clear() {
+    Object.assign(this, {
+      language: 'Rust',
+      name: '',
+      description: '',
+      source: '',
+      uri: '',
+    });
+  }
 
   async load(uri) {
     console.log('Loading program:', uri);
+    this.uri = uri;
+
     try {
       const res = await rpcClient.request('load', [uri]);
       console.log('load result', res);
-      // TODO: Validate res.result with Joi
+
       if (res.error) {
         throw new Error(res.error.message);
       }
@@ -53,7 +63,6 @@ export class Program {
       this.language = program.language;
       this.name = program.name;
       this.source = program.source;
-      this.uri = program.uri;
       this.modified = false;
       this._ee.emit('modified');
     } catch (err) {
@@ -69,11 +78,9 @@ export class Program {
       language: this.language,
       name: this.name,
       source: this.source,
-      uri: this.uri,
     };
     const res = await rpcClient.request('save', [program]);
     console.log('save result', res);
-    // TODO: Validate res.result with Joi
     if (res.error) {
       throw new Error(res.error.message);
     }

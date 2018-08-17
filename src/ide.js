@@ -350,7 +350,7 @@ export class Ide extends React.Component {
       <div style={{width: '0px'}}>
         <Navbar style={{marginBottom: '0', border: '0'}}>
           <Nav>
-            <NavItem disabled={!saving && !modified} eventKey={1} onClick={::this.onSave}>
+            <NavItem disabled={emptySource || saving || !modified} eventKey={1} onClick={::this.onSave}>
               <Glyphicon glyph="cloud-upload" />
               &nbsp; {this.state.program.uri ? 'Update' : 'Save'}
             </NavItem>
