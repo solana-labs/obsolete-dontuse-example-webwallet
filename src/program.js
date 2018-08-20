@@ -1,36 +1,11 @@
 import EventEmitter from 'event-emitter';
-import jayson from 'jayson/lib/client/browser';
-import fetch from 'node-fetch';
-import promisify from 'promisify';
 
-const promisify_jayson = promisify.object({
-  request: promisify.cb_func(),
-});
-
-const rpcClient = promisify_jayson(jayson(
-  async (request, callback) => {
-    const options = {
-      method: 'POST',
-      body: request,
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    };
-
-    try {
-      const res = await fetch(window.location.origin, options);
-      const text = await res.text();
-      callback(null, text);
-    } catch (err) {
-      callback(err);
-    }
-  }
-));
-
+import {createRpcClient} from './rpc-client';
 
 export class Program {
   modified = false;
   _ee = new EventEmitter();
+  _rpcClient = createRpcClient(window.location.origin);
 
   constructor() {
     Object.assign(this, {
@@ -47,7 +22,7 @@ export class Program {
     this.uri = uri;
 
     try {
-      const res = await rpcClient.request('load', [uri]);
+      const res = await this._rpcClient.request('load', [uri]);
       console.log('load result', res);
 
       if (res.error) {
@@ -75,7 +50,7 @@ export class Program {
       name: this.name,
       source: this.source,
     };
-    const res = await rpcClient.request('save', [program]);
+    const res = await this._rpcClient.request('save', [program]);
     console.log('save result', res);
     if (res.error) {
       throw new Error(res.error.message);

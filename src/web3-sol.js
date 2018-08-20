@@ -6,6 +6,8 @@
 import nacl from 'tweetnacl';
 import bs58 from 'bs58';
 
+import {createRpcClient} from './rpc-client';
+
 function sleep(duration: number = 0): Promise<void> {
   return new Promise((accept) => {
     setTimeout(accept, duration);
@@ -19,6 +21,7 @@ export class Web3Sol {
       balance: 0,
       endpoint,
       keypair,
+      rpcClient: createRpcClient(endpoint),
     });
   }
 
