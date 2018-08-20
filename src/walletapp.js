@@ -118,6 +118,58 @@ TokenInput.propTypes = {
 };
 
 
+class SignatureInput extends React.Component {
+  state = {
+    value: '',
+    validationState: null,
+  };
+
+  getValidationState(value) {
+    const length = value.length;
+    if (length === 88) {
+      if (value.match(/^[A-Za-z0-9]+$/)) {
+        return 'success';
+      }
+      return 'error';
+    } else if (length > 44) {
+      return 'error';
+    } else if (length > 0) {
+      return 'warning';
+    }
+    return null;
+  }
+
+  handleChange(e) {
+    const {value} = e.target;
+    const validationState = this.getValidationState(value);
+    this.setState({value, validationState});
+    this.props.onSignature(validationState === 'success' ? value : null);
+  }
+
+  render() {
+    return (
+      <form>
+        <FormGroup
+          validationState={this.state.validationState}
+        >
+          <ControlLabel>Signature</ControlLabel>
+          <FormControl
+            type="text"
+            value={this.state.value}
+            placeholder="Enter a transaction signature"
+            onChange={(e) => this.handleChange(e)}
+          />
+          <FormControl.Feedback />
+        </FormGroup>
+      </form>
+    );
+  }
+}
+SignatureInput.propTypes = {
+  onSignature: PropTypes.function,
+};
+
+
 class DismissibleErrors extends React.Component {
   render() {
     const errs = this.props.errors.map((err, index) => {
@@ -175,7 +227,16 @@ export class WalletApp extends React.Component {
     balance: 0,
     recipientPublicKey: null,
     recipientAmount: null,
+    confirmationSignature: null,
+    transactionConfirmed: null,
   };
+
+  setConfirmationSignature(confirmationSignature) {
+    this.setState({
+      transactionConfirmed: null,
+      confirmationSignature
+    });
+  }
 
   setRecipientPublicKey(recipientPublicKey) {
     this.setState({recipientPublicKey});
@@ -273,6 +334,22 @@ export class WalletApp extends React.Component {
     );
   }
 
+  confirmTransaction() {
+    this.runModal(
+      'Confirming Transaction',
+      'Please wait...',
+      async () => {
+        const {web3sol} = this.state;
+        const result = await web3sol.confirmTransaction(
+          this.state.confirmationSignature,
+        );
+        this.setState({
+          transactionConfirmed: result
+        });
+      }
+    );
+  }
+
   render() {
     const copyTooltip = (
       <Tooltip id="clipboard">
@@ -294,7 +371,10 @@ export class WalletApp extends React.Component {
       <BusyModal show title={this.state.busyModal.title} text={this.state.busyModal.text} /> : null;
 
     const sendDisabled = this.state.recipientPublicKey === null || this.state.recipientAmount === null;
+    const confirmDisabled = this.state.confirmationSignature === null;
     const airdropDisabled = this.state.balance !== 0;
+
+
     return (
       <div>
         {busyModal}
@@ -327,7 +407,6 @@ export class WalletApp extends React.Component {
           </OverlayTrigger>
         </Well>
         <p/>
-        <p/>
         <Panel>
           <Panel.Heading>Send Tokens</Panel.Heading>
           <Panel.Body>
@@ -336,6 +415,24 @@ export class WalletApp extends React.Component {
             <div className="text-center">
               <Button disabled={sendDisabled} onClick={() => this.sendTransaction()}>Send</Button>
             </div>
+          </Panel.Body>
+        </Panel>
+        <p/>
+        <Panel>
+          <Panel.Heading>Confirm Transaction</Panel.Heading>
+          <Panel.Body>
+            <SignatureInput onSignature={(signature) => this.setConfirmationSignature(signature)}/>
+            <div className="text-center">
+              <Button disabled={confirmDisabled} onClick={() => this.confirmTransaction()}>Confirm</Button>
+            </div>
+            {
+              typeof this.state.transactionConfirmed === 'boolean'
+                ? (
+                  <b>
+                    {this.state.transactionConfirmed ? 'CONFIRMED' : 'NOT CONFIRMED'}
+                  </b>
+                ) : ''
+            }
           </Panel.Body>
         </Panel>
       </div>
