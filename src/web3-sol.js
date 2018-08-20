@@ -48,9 +48,84 @@ export class Web3Sol {
       );
     } catch (err) {
       console.log('Failed to getBalance:', err);
+      // TODO: Throw?
     }
-
     return this.balance;
+  }
+
+  async confirmTransaction(signature) {
+    try {
+      const res = await this.rpcClient.request(
+        'confirmTransaction',
+        [signature]
+      );
+      console.log('confirmTransaction result', res);
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+      return joi.attempt(
+        res.result,
+        joi.boolean().required()
+      );
+    } catch (err) {
+      console.log('Failed to confirmTransaction:', err);
+    }
+    // TODO: Throw?
+    return false;
+  }
+
+  async getTransactionCount() {
+    try {
+      const res = await this.rpcClient.request('getTransactionCount');
+      console.log('getTransactionCount result', res);
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+      return joi.attempt(
+        res.result,
+        joi.number().required().min(0)
+      );
+    } catch (err) {
+      console.log('Failed to getTransactionCount:', err);
+    }
+    // TODO: Throw?
+    return 0;
+  }
+
+  async getLastId() {
+    try {
+      const res = await this.rpcClient.request('getLastId');
+      console.log('getLastId', res);
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+      return joi.attempt(
+        res.result,
+        joi.string().required().min(44).max(44)
+      );
+    } catch (err) {
+      console.log('Failed to getLastId:', err);
+    }
+    // TODO: Throw?
+    return 0;
+  }
+
+  async getFinality() {
+    try {
+      const res = await this.rpcClient.request('getFinality');
+      console.log('getFinality', res);
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+      return joi.attempt(
+        res.result,
+        joi.number().required().min(0)
+      );
+    } catch (err) {
+      console.log('Failed to getFinality:', err);
+    }
+    // TODO: Throw?
+    return 0;
   }
 
   async requestAirdrop(amount) {
