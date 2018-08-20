@@ -5,6 +5,7 @@
 
 import nacl from 'tweetnacl';
 import bs58 from 'bs58';
+import joi from 'joi';
 
 import {createRpcClient} from './rpc-client';
 
@@ -32,7 +33,23 @@ export class Web3Sol {
   }
 
   async getBalance() {
-    await sleep(500); // TODO
+    try {
+      const res = await this.rpcClient.request(
+        'getBalance',
+        [bs58.encode(this.keypair.publicKey)]
+      );
+      console.log('getBalance result', res);
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
+      this.balance = joi.attempt(
+        res.result,
+        joi.number().required().min(0)
+      );
+    } catch (err) {
+      console.log('Failed to getBalance:', err);
+    }
+
     return this.balance;
   }
 

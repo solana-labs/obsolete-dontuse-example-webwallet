@@ -168,7 +168,7 @@ BusyModal.propTypes = {
 
 export class WalletApp extends React.Component {
   state = {
-    web3sol: new Web3Sol('master.testnet.solana.com'), // TODO: make endpoint configurable by the user
+    web3sol: new Web3Sol('http://master.testnet.solana.com:8899'), // TODO: make endpoint configurable by the user
     errors: [],
     busyModal: null,
     publicKey: '',
