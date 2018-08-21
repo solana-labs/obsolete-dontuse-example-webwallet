@@ -7,13 +7,13 @@ import {
   Route,
 } from 'react-router-dom';
 import {
-  Jumbotron,
   Nav,
   NavItem,
 } from 'react-bootstrap';
 
 import {Ide} from './ide';
 import {WalletApp} from './walletapp';
+import {Settings} from './settings';
 
 const Header = () => (
   <Nav bsStyle="tabs">
@@ -29,17 +29,6 @@ const Header = () => (
   </Nav>
 );
 
-const Settings = () => (
-  // * Account management (keypair)
-  // * Network URL
-  // * Editor configuration
-  <Jumbotron>
-    <h1>Settings</h1>
-    <p>
-     App settings will be placed here.
-    </p>
-  </Jumbotron>
-);
 
 ReactDOM.render(
   <BrowserRouter>
