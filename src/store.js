@@ -12,6 +12,7 @@ export class Store {
   }
 
   async init() {
+    this.networkEntryPoint = 'http://master.testnet.solana.com:8899';
     for (let key of [
       'networkEntryPoint',
       'accountSecretKey', // TODO: THIS KEY IS NOT STORED SECURELY!!
