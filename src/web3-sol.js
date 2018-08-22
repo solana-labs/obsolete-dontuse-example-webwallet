@@ -15,42 +15,50 @@ function sleep(duration: number = 0): Promise<void> {
   });
 }
 
+export class Web3SolAccount {
+  constructor(secretKey = null) {
+    if (secretKey) {
+      this._keypair = nacl.sign.keyPair.fromSecretKey(secretKey);
+    } else {
+      this._keypair = nacl.sign.keyPair();
+    }
+  }
+
+  get publicKey() {
+    return bs58.encode(this._keypair.publicKey);
+  }
+
+  get secretKey() {
+    return this._keypair.secretKey;
+  }
+}
+
 export class Web3Sol {
   constructor(endpoint) {
-    const keypair = nacl.sign.keyPair();
     Object.assign(this, {
-      balance: 0,
       endpoint,
-      keypair,
       rpcClient: createRpcClient(endpoint),
     });
   }
 
-  async getPublicKey() {
-    await sleep(0);
-    const publicKey = bs58.encode(this.keypair.publicKey);
-    return publicKey;
-  }
-
-  async getBalance() {
+  async getBalance(account) {
     try {
       const res = await this.rpcClient.request(
         'getBalance',
-        [bs58.encode(this.keypair.publicKey)]
+        [account.publicKey]
       );
       console.log('getBalance result', res);
       if (res.error) {
         throw new Error(res.error.message);
       }
-      this.balance = joi.attempt(
+      return joi.attempt(
         res.result,
         joi.number().required().min(0)
       );
     } catch (err) {
       console.log('Failed to getBalance:', err);
-      // TODO: Throw?
+      return 0; // TODO: Throw instead?
     }
-    return this.balance;
   }
 
   async confirmTransaction(signature) {
@@ -70,75 +78,56 @@ export class Web3Sol {
     } catch (err) {
       console.log('Failed to confirmTransaction:', err);
     }
-    // TODO: Throw?
-    return false;
+    return false; // TODO: Throw instead?
   }
 
   async getTransactionCount() {
-    try {
-      const res = await this.rpcClient.request('getTransactionCount');
-      console.log('getTransactionCount result', res);
-      if (res.error) {
-        throw new Error(res.error.message);
-      }
-      return joi.attempt(
-        res.result,
-        joi.number().required().min(0)
-      );
-    } catch (err) {
-      console.log('Failed to getTransactionCount:', err);
+    const res = await this.rpcClient.request('getTransactionCount');
+    console.log('getTransactionCount result', res);
+    if (res.error) {
+      throw new Error(res.error.message);
     }
-    // TODO: Throw?
-    return 0;
+    return joi.attempt(
+      res.result,
+      joi.number().required().min(0)
+    );
   }
 
   async getLastId() {
-    try {
-      const res = await this.rpcClient.request('getLastId');
-      console.log('getLastId', res);
-      if (res.error) {
-        throw new Error(res.error.message);
-      }
-      return joi.attempt(
-        res.result,
-        joi.string().required().min(44).max(44)
-      );
-    } catch (err) {
-      console.log('Failed to getLastId:', err);
+    const res = await this.rpcClient.request('getLastId', []);
+    console.log('getLastId', res);
+    if (res.error) {
+      throw new Error(res.error.message);
     }
-    // TODO: Throw?
-    return 0;
+    return joi.attempt(
+      res.result,
+      joi.string().required().min(43).max(44)
+    );
   }
 
   async getFinality() {
-    try {
-      const res = await this.rpcClient.request('getFinality');
-      console.log('getFinality', res);
-      if (res.error) {
-        throw new Error(res.error.message);
-      }
-      return joi.attempt(
-        res.result,
-        joi.number().required().min(0)
-      );
-    } catch (err) {
-      console.log('Failed to getFinality:', err);
+    const res = await this.rpcClient.request('getFinality');
+    console.log('getFinality', res);
+    if (res.error) {
+      throw new Error(res.error.message);
     }
-    // TODO: Throw?
-    return 0;
+    return joi.attempt(
+      res.result,
+      joi.number().required().min(0)
+    );
   }
 
-  async requestAirdrop(amount) {
+  async requestAirdrop(account, amount) {
+    console.log(`TODO: airdrop ${amount} to ${account.publicKey}`);
     await sleep(500); // TODO
-    this.balance += amount;
   }
 
-  async sendTokens(to, amount) {
+  async sendTokens(from, to, amount) {
     const transaction = Buffer.from(
       // TODO: This is not the correct transaction payload
-      `Transaction ${this.keypair.publicKey} ${to} ${amount}`
+      `Transaction ${from.publicKey} ${to} ${amount}`
     );
-    const signature = nacl.sign.detached(transaction, this.keypair.secretKey);
+    const signature = nacl.sign.detached(transaction, from.secretKey);
 
     console.log('Created signature of length', signature.length);
     await sleep(500); // TODO: transmit transaction + signature

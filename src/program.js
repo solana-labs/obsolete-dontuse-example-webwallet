@@ -75,7 +75,7 @@ export class Program {
   }
 
   removeListener(event, fn) {
-    this._ee.removeListener(event, fn);
+    this._ee.off(event, fn);
   }
 }
 

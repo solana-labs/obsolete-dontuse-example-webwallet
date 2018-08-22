@@ -48,6 +48,7 @@
     "express": "^4.16.3",
     "jayson": "^2.0.6",
     "joi": "^13.6.0",
+    "localforage": "^1.7.2",
     "mkdirp-promise": "^5.0.1",
     "monaco-editor-webpack-plugin": "^1.5.1",
     "mz": "^2.7.0",

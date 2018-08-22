@@ -2,54 +2,47 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {
   BrowserRouter,
-  Link,
   Switch,
   Route,
 } from 'react-router-dom';
-import {
-  Nav,
-  NavItem,
-} from 'react-bootstrap';
 
 import {Ide} from './ide';
 import {WalletApp} from './walletapp';
-import {Settings} from './settings';
+import {Store} from './store';
 
-const Header = () => (
-  <Nav bsStyle="tabs">
-    <NavItem eventKey={1}>
-      <Link to="/">Editor</Link>
-    </NavItem>
-    <NavItem eventKey={2}>
-      <Link to="/wallet">Wallet</Link>
-    </NavItem>
-    <NavItem eventKey={3}>
-      <Link to="/settings">Settings</Link>
-    </NavItem>
-  </Nav>
-);
+const store = new Store();
 
+class App extends React.Component {
 
-ReactDOM.render(
-  <BrowserRouter>
-    <div style={{display: 'table', height: '100%', width: '100%'}}>
-      <Header />
-      <div style={{postition: 'relative', display: 'table-row', height: '100%'}}>
+  state = {
+    initialized: false,
+  }
+
+  async componentDidMount() {
+    await store.init();
+    this.setState({initialized: true});
+  }
+
+  render() {
+    if (!this.state.initialized) {
+      return <div />; // TODO: Loading screen?
+    }
+    return (
+      <BrowserRouter>
         <Switch>
-          <Route path='/wallet' component={WalletApp} />
-          <Route path='/settings' component={Settings} />
           <Route
-            path='/:programId'
+            path='/ide/:programId'
             component={(router) => {
-              return <Ide history={router.history} programId={router.match.params.programId}/>;
+              return <Ide history={router.history} store={store} programId={router.match.params.programId}/>;
             }}
           />
-          <Route path='/' component={Ide} />
+          <Route path='/ide' component={Ide} />
+          <Route path='/' component={() => <WalletApp store={store} />} />
         </Switch>
-      </div>
-    </div>
-  </BrowserRouter>,
-  document.getElementById('app'),
-);
+      </BrowserRouter>
+    );
+  }
+}
 
+ReactDOM.render(<App />, document.getElementById('app'));
 module.hot.accept();

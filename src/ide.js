@@ -132,7 +132,7 @@ class Editor extends React.Component {
     this.props.program.on('modified', this.forceUpdate);
   }
 
-  cmponentWillUnmount() {
+  componentWillUnmount() {
     this.props.program.removeListener('modified', this.forceUpdate);
   }
 
@@ -203,7 +203,7 @@ class LeftPanel extends React.Component {
     this.props.program.on('modified', this.forceUpdate);
   }
 
-  cmponentWillUnmount() {
+  componentWillUnmount() {
     this.props.program.removeListener('modified', this.forceUpdate);
   }
 
@@ -294,7 +294,7 @@ export class Ide extends React.Component {
     }
   }
 
-  cmponentWillUnmount() {
+  componentWillUnmount() {
     this.state.program.removeListener('modified', this.forceUpdate);
   }
 
@@ -411,6 +411,7 @@ export class Ide extends React.Component {
   }
 }
 Ide.propTypes = {
-  programId: PropTypes.string,
   history: PropTypes.object,
+  programId: PropTypes.string,
+  store: PropTypes.object,
 };

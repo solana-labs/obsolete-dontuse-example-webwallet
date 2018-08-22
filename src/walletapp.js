@@ -17,7 +17,8 @@ import {
 import PropTypes from 'prop-types';
 import copy from 'copy-to-clipboard';
 
-import {Web3Sol} from './web3-sol';
+import {Web3Sol, Web3SolAccount} from './web3-sol';
+import {Settings} from './settings';
 
 class PublicKeyInput extends React.Component {
   state = {
@@ -218,18 +219,49 @@ BusyModal.propTypes = {
 };
 
 
+class SettingsModal extends React.Component {
+  render() {
+    return (
+      <Modal
+        {...this.props}
+        bsSize="large"
+        aria-labelledby="contained-modal-title-lg"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-lg">Settings</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Settings store={this.props.store} />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={this.props.onHide}>Close</Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
+}
+SettingsModal.propTypes = {
+  onHide: PropTypes.function,
+  store: PropTypes.object,
+};
+
+
 export class WalletApp extends React.Component {
   state = {
-    web3sol: new Web3Sol('http://master.testnet.solana.com:8899'), // TODO: make endpoint configurable by the user
     errors: [],
     busyModal: null,
-    publicKey: '',
+    settingsModal: false,
     balance: 0,
     recipientPublicKey: null,
     recipientAmount: null,
     confirmationSignature: null,
     transactionConfirmed: null,
   };
+
+  constructor(props) {
+    super(props);
+    this.onStoreChange();
+  }
 
   setConfirmationSignature(confirmationSignature) {
     this.setState({
@@ -272,22 +304,24 @@ export class WalletApp extends React.Component {
     this.setState({busyModal: null});
   }
 
-  componentDidMount() {
-    this.runModal(
-      'Initializing',
-      'Please wait while your wallet is initialized...',
-      async () => {
-        const {web3sol} = this.state;
-        this.setState({
-          publicKey: await web3sol.getPublicKey(),
-          balance: await web3sol.getBalance(),
-        });
-      }
-    );
+  onStoreChange = () => {
+    this.web3solAccount = new Web3SolAccount(this.props.store.accountSecretKey);
+    this.web3sol = new Web3Sol(this.props.store.networkEntryPoint);
+    this.forceUpdate();
   }
 
+  componentDidMount() {
+    this.props.store.onChange(this.onStoreChange);
+    this.refreshBalance();
+  }
+
+  componentWillUnmount() {
+    this.props.store.removeChangeListener(this.onStoreChange);
+  }
+
+
   copyPublicKey() {
-    copy(this.state.publicKey);
+    copy(this.web3solAccount.publicKey);
   }
 
   refreshBalance() {
@@ -295,9 +329,8 @@ export class WalletApp extends React.Component {
       'Updating Account Balance',
       'Please wait...',
       async () => {
-        const {web3sol} = this.state;
         this.setState({
-          balance: await web3sol.getBalance(),
+          balance: await this.web3sol.getBalance(this.web3solAccount),
         });
       }
     );
@@ -308,10 +341,9 @@ export class WalletApp extends React.Component {
       'Requesting Airdrop',
       'Please wait...',
       async () => {
-        const {web3sol} = this.state;
-        await web3sol.requestAirdrop(1000);
+        await this.web3sol.requestAirdrop(this.web3solAccount, 1000);
         this.setState({
-          balance: await web3sol.getBalance(),
+          balance: await this.web3sol.getBalance(this.web3solAccount),
         });
       }
     );
@@ -322,13 +354,13 @@ export class WalletApp extends React.Component {
       'Sending Transaction',
       'Please wait...',
       async () => {
-        const {web3sol} = this.state;
-        await web3sol.sendTokens(
+        await this.web3sol.sendTokens(
+          this.web3solAccount,
           this.state.recipientPublicKey,
           this.state.recipientAmount
         );
         this.setState({
-          balance: await web3sol.getBalance(),
+          balance: await this.web3sol.getBalance(this.web3solAccount),
         });
       }
     );
@@ -339,8 +371,7 @@ export class WalletApp extends React.Component {
       'Confirming Transaction',
       'Please wait...',
       async () => {
-        const {web3sol} = this.state;
-        const result = await web3sol.confirmTransaction(
+        const result = await this.web3sol.confirmTransaction(
           this.state.confirmationSignature,
         );
         this.setState({
@@ -370,20 +401,34 @@ export class WalletApp extends React.Component {
     const busyModal = this.state.busyModal ?
       <BusyModal show title={this.state.busyModal.title} text={this.state.busyModal.text} /> : null;
 
+    const settingsModal = this.state.settingsModal ?
+      <SettingsModal
+        show
+        store={this.props.store}
+        onHide={() => this.setState({settingsModal: false})}
+      /> : null;
+
     const sendDisabled = this.state.recipientPublicKey === null || this.state.recipientAmount === null;
     const confirmDisabled = this.state.confirmationSignature === null;
     const airdropDisabled = this.state.balance !== 0;
 
-
     return (
       <div>
+        <div style={{width: '100%', textAlign: 'right'}}>
+          <Glyphicon
+            bsSize="large"
+            glyph="menu-hamburger"
+            onClick={() => this.setState({settingsModal: true})}
+          />
+        </div>
         {busyModal}
+        {settingsModal}
         <DismissibleErrors errors={this.state.errors} onDismiss={(index) => this.dismissError(index)}/>
         <Well>
           Account Public Key:
           <FormGroup>
             <InputGroup>
-              <FormControl readOnly type="text" size="21" value={this.state.publicKey}/>
+              <FormControl readOnly type="text" size="21" value={this.web3solAccount.publicKey}/>
               <InputGroup.Button>
                 <OverlayTrigger placement="bottom" overlay={copyTooltip}>
                   <Button onClick={() => this.copyPublicKey()}>
@@ -439,4 +484,7 @@ export class WalletApp extends React.Component {
     );
   }
 }
+WalletApp.propTypes = {
+  store: PropTypes.object,
+};
 
