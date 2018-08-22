@@ -3,11 +3,39 @@
  *
  */
 
-import nacl from 'tweetnacl';
-import bs58 from 'bs58';
-import joi from 'joi';
 
-import {createRpcClient} from './rpc-client';
+import bs58 from 'bs58';
+import fetch from 'node-fetch';
+import jayson from 'jayson/lib/client/browser';
+import joi from 'joi';
+import nacl from 'tweetnacl';
+import promisify from 'promisify';
+
+const promisify_jayson = promisify.object({
+  request: promisify.cb_func(),
+});
+
+function createRpcClient(uri) {
+  return promisify_jayson(jayson(
+    async (request, callback) => {
+      const options = {
+        method: 'POST',
+        body: request,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      };
+
+      try {
+        const res = await fetch(uri, options);
+        const text = await res.text();
+        callback(null, text);
+      } catch (err) {
+        callback(err);
+      }
+    }
+  ));
+}
 
 function sleep(duration: number = 0): Promise<void> {
   return new Promise((accept) => {

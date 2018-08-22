@@ -1,6 +1,5 @@
 /* eslint import/no-commonjs:0 */
 const webpack = require('webpack');
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 module.exports = {
   entry: './src/index.js',
@@ -36,7 +35,6 @@ module.exports = {
     filename: 'bundle.js'
   },
   plugins: [
-    new MonacoWebpackPlugin(),
     new webpack.HotModuleReplacementPlugin(),
   ],
   devServer: {

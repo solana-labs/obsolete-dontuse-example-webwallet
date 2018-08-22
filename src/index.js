@@ -1,25 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {
-  BrowserRouter,
-  Switch,
-  Route,
-} from 'react-router-dom';
 
-import {Ide} from './ide';
 import {Wallet} from './wallet';
 import {Store} from './store';
 
-const store = new Store();
-
 class App extends React.Component {
-
   state = {
+    store: new Store(),
     initialized: false,
   }
 
   async componentDidMount() {
-    await store.init();
+    await this.state.store.init();
     this.setState({initialized: true});
   }
 
@@ -27,20 +19,7 @@ class App extends React.Component {
     if (!this.state.initialized) {
       return <div />; // TODO: Loading screen?
     }
-    return (
-      <BrowserRouter>
-        <Switch>
-          <Route
-            path='/ide/:programId'
-            component={(router) => {
-              return <Ide history={router.history} store={store} programId={router.match.params.programId}/>;
-            }}
-          />
-          <Route path='/ide' component={Ide} />
-          <Route path='/' component={() => <Wallet store={store} />} />
-        </Switch>
-      </BrowserRouter>
-    );
+    return <Wallet store={this.state.store} />;
   }
 }
 
