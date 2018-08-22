@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom';
 
 import {Ide} from './ide';
-import {WalletApp} from './walletapp';
+import {Wallet} from './wallet';
 import {Store} from './store';
 
 const store = new Store();
@@ -37,7 +37,7 @@ class App extends React.Component {
             }}
           />
           <Route path='/ide' component={Ide} />
-          <Route path='/' component={() => <WalletApp store={store} />} />
+          <Route path='/' component={() => <Wallet store={store} />} />
         </Switch>
       </BrowserRouter>
     );

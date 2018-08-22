@@ -246,7 +246,7 @@ SettingsModal.propTypes = {
 };
 
 
-export class WalletApp extends React.Component {
+export class Wallet extends React.Component {
   state = {
     errors: [],
     busyModal: null,
@@ -484,7 +484,7 @@ export class WalletApp extends React.Component {
     );
   }
 }
-WalletApp.propTypes = {
+Wallet.propTypes = {
   store: PropTypes.object,
 };
 
