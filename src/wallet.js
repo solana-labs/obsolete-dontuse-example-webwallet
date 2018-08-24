@@ -16,8 +16,8 @@ import {
 } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import copy from 'copy-to-clipboard';
+import * as web3 from '@solana/web3.js';
 
-import {Web3Sol, Web3SolAccount} from './web3-sol';
 import {Settings} from './settings';
 
 class PublicKeyInput extends React.Component {
@@ -305,8 +305,8 @@ export class Wallet extends React.Component {
   }
 
   onStoreChange = () => {
-    this.web3solAccount = new Web3SolAccount(this.props.store.accountSecretKey);
-    this.web3sol = new Web3Sol(this.props.store.networkEntryPoint);
+    this.web3solAccount = new web3.Account(this.props.store.accountSecretKey);
+    this.web3sol = new web3.Connection(this.props.store.networkEntryPoint);
     this.forceUpdate();
   }
 
@@ -330,7 +330,7 @@ export class Wallet extends React.Component {
       'Please wait...',
       async () => {
         this.setState({
-          balance: await this.web3sol.getBalance(this.web3solAccount),
+          balance: await this.web3sol.getBalance(this.web3solAccount.publicKey),
         });
       }
     );
@@ -341,9 +341,9 @@ export class Wallet extends React.Component {
       'Requesting Airdrop',
       'Please wait...',
       async () => {
-        await this.web3sol.requestAirdrop(this.web3solAccount, 1000);
+        await this.web3sol.requestAirdrop(this.web3solAccount.publicKey, 1000);
         this.setState({
-          balance: await this.web3sol.getBalance(this.web3solAccount),
+          balance: await this.web3sol.getBalance(this.web3solAccount.publicKey),
         });
       }
     );
@@ -360,7 +360,7 @@ export class Wallet extends React.Component {
           this.state.recipientAmount
         );
         this.setState({
-          balance: await this.web3sol.getBalance(this.web3solAccount),
+          balance: await this.web3sol.getBalance(this.web3solAccount.publicKey),
         });
       }
     );

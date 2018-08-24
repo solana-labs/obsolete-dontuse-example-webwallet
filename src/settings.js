@@ -10,8 +10,7 @@ import {
   Panel,
 } from 'react-bootstrap';
 import PropTypes from 'prop-types';
-
-import {Web3Sol} from './web3-sol';
+import * as web3 from '@solana/web3.js';
 
 export class Settings extends React.Component {
   forceUpdate = () => {
@@ -45,7 +44,7 @@ export class Settings extends React.Component {
       this.props.store.networkEntryPoint
     );
 
-    const web3sol = new Web3Sol(this.props.store.networkEntryPoint);
+    const connection = new web3.Connection(this.props.store.networkEntryPoint);
 
     const checkNetworkCount = this.state.checkNetworkCount + 1;
     this.setState({
@@ -55,7 +54,7 @@ export class Settings extends React.Component {
     });
 
     try {
-      const lastId = await web3sol.getLastId();
+      const lastId = await connection.getLastId();
       console.log('lastId:', lastId);
       if (this.state.checkNetworkCount <= checkNetworkCount) {
         this.setState({

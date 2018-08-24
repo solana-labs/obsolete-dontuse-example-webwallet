@@ -1,7 +1,6 @@
 import localforage from 'localforage';
 import EventEmitter from 'event-emitter';
-
-import {Web3SolAccount} from './web3-sol';
+import * as web3 from '@solana/web3.js';
 
 export class Store {
   constructor() {
@@ -12,12 +11,15 @@ export class Store {
   }
 
   async init() {
-    this.networkEntryPoint = 'http://master.testnet.solana.com:8899';
     for (let key of [
       'networkEntryPoint',
       'accountSecretKey', // TODO: THIS KEY IS NOT STORED SECURELY!!
     ]) {
       this[key] = await this._lf.getItem(key);
+    }
+
+    if (typeof this.networkEntryPoint !== 'string') {
+      this.networkEntryPoint = 'http://master.testnet.solana.com:8899';
     }
 
     if (!this.accountSecretKey) {
@@ -28,7 +30,7 @@ export class Store {
   }
 
   async createAccount() {
-    const account = new Web3SolAccount();
+    const account = new web3.Account();
     this.accountSecretKey = account.secretKey;
     this._ee.emit('change');
     await this._lf.setItem('accountSecretKey', account.secretKey);
