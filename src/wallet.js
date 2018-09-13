@@ -416,11 +416,12 @@ export class Wallet extends React.Component {
     return (
       <div>
         <div style={{width: '100%', textAlign: 'right'}}>
-          <Glyphicon
-            bsSize="large"
-            glyph="menu-hamburger"
-            onClick={() => this.setState({settingsModal: true})}
-          />
+          <Button onClick={() => this.setState({settingsModal: true})}>
+            <Glyphicon
+              style={{backgroundColor: 'white'}}
+              glyph="menu-hamburger"
+            />
+          </Button>
         </div>
         {busyModal}
         {settingsModal}
