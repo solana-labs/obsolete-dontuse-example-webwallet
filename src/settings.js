@@ -95,9 +95,8 @@ export class Settings extends React.Component {
                 >
                   {
                     [
-                      'http://localhost:8899',
-                      'https://master.testnet.solana.com'
-                      //'https://testnet.solana.com',
+                      'https://api.testnet.solana.com',
+                      'http://localhost:8899'
                     ].map((url, index) => <MenuItem key={index} eventKey={url}>{url}</MenuItem>)
                   }
                 </DropdownButton>
