@@ -354,11 +354,14 @@ export class Wallet extends React.Component {
       'Sending Transaction',
       'Please wait...',
       async () => {
-        const signature = await this.web3sol.sendTokens(
-          this.web3solAccount,
+        const transaction = web3.SystemProgram.move(
+          this.web3solAccount.publicKey,
           this.state.recipientPublicKey,
-          this.state.recipientAmount
+          this.state.recipientAmount,
+
         );
+        const signature = await this.web3sol.sendTransaction(this.web3solAccount, transaction);
+
         await this.web3sol.confirmTransaction(signature);
         this.setState({
           balance: await this.web3sol.getBalance(this.web3solAccount.publicKey),
