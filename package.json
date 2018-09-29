@@ -10,7 +10,11 @@
     "postinstall": "npm run build",
     "dev": "webpack-dev-server --config ./webpack.config.js --mode development",
     "lint": "eslint .",
-    "lintf": "eslint . --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "flow": "flow",
+    "flow:watch": "watch 'flow' . --wait=1 --ignoreDirectoryPattern=/doc/",
+    "lint:watch": "watch 'npm run lint:fix' . --wait=1",
+    "test": "npm run lint && npm run flow"
   },
   "keywords": [],
   "author": "",
@@ -35,7 +39,7 @@
     "webpack-dev-server": "^3.1.5"
   },
   "dependencies": {
-    "@solana/web3.js": "0.0.7",
+    "@solana/web3.js": "0.1.0",
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-runtime": "^6.26.0",
@@ -45,6 +49,7 @@
     "css-loader": "^1.0.0",
     "event-emitter": "^0.3.5",
     "express": "^4.16.3",
+    "flow-bin": "^0.81.0",
     "jayson": "^2.0.6",
     "joi": "^13.6.0",
     "localforage": "^1.7.2",
