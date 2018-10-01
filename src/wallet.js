@@ -356,7 +356,7 @@ export class Wallet extends React.Component {
       async () => {
         const transaction = web3.SystemProgram.move(
           this.web3solAccount.publicKey,
-          this.state.recipientPublicKey,
+          new web3.PublicKey(this.state.recipientPublicKey),
           this.state.recipientAmount,
 
         );
