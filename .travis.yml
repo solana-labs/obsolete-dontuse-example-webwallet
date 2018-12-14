@@ -1,0 +1,20 @@
+dist: trusty
+sudo: required
+language: rust
+services:
+- docker
+cache:
+  directories:
+  - "~/.npm"
+notifications:
+  email: false
+
+install:
+  - cargo --version
+  - docker --version
+  - nvm install node
+  - node --version
+  - npm install
+
+script:
+  - npm run test
