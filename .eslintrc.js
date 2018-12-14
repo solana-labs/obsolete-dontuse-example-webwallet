@@ -1,65 +1,45 @@
-module.exports = { // eslint-disable-line import/no-commonjs
-  'env': {
-    'browser': true,
-    'es6': true,
-    'node': true,
+module.exports = {
+  // eslint-disable-line import/no-commonjs
+  env: {
+    browser: true,
+    es6: true,
+    node: true,
   },
-  'plugins': [
-    'react',
-  ],
-  'extends': [
+  plugins: ['react'],
+  extends: [
     'eslint:recommended',
     'plugin:import/errors',
     'plugin:import/warnings',
     'plugin:react/recommended',
   ],
-  'parser': 'babel-eslint',
-  'parserOptions': {
-    'sourceType': 'module',
-    'ecmaVersion': 8,
+  parser: 'babel-eslint',
+  parserOptions: {
+    sourceType: 'module',
+    ecmaVersion: 8,
   },
-  'rules': {
-    'no-trailing-spaces': [
-      'error',
-    ],
-    'import/first': [
-      'error',
-    ],
-    'import/no-commonjs': [
-      'error',
-    ],
+  rules: {
+    'no-trailing-spaces': ['error'],
+    'import/first': ['error'],
+    'import/no-commonjs': ['error'],
     'import/order': [
       'error',
       {
-        'groups': [
+        groups: [
           ['internal', 'external', 'builtin'],
-          ['index', 'sibling', 'parent']
+          ['index', 'sibling', 'parent'],
         ],
         'newlines-between': 'always',
       },
     ],
-    'indent': [
+    indent: ['error', 2, {MemberExpression: 0}],
+    'linebreak-style': ['error', 'unix'],
+    'no-console': [0],
+    quotes: [
       'error',
-      2,
-      {'MemberExpression': 0},
+      'single',
+      {avoidEscape: true, allowTemplateLiterals: true},
     ],
-    'linebreak-style': [
-      'error',
-      'unix',
-    ],
-    'no-console': [
-      0
-    ],
-    'quotes': [
-      'error',
-      'single', {'avoidEscape': true, 'allowTemplateLiterals': true},
-    ],
-    'require-await': [
-      'error'
-    ],
-    'semi': [
-      'error',
-      'always',
-    ],
+    'require-await': ['error'],
+    semi: ['error', 'always'],
   },
 };

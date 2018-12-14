@@ -16,7 +16,7 @@ export class Settings extends React.Component {
   forceUpdate = () => {
     super.forceUpdate();
     this.checkNetwork();
-  }
+  };
 
   state = {
     validationState: null,
@@ -39,10 +39,7 @@ export class Settings extends React.Component {
   }
 
   async checkNetwork() {
-    console.log(
-      'Checking network:',
-      this.props.store.networkEntryPoint
-    );
+    console.log('Checking network:', this.props.store.networkEntryPoint);
 
     const connection = new web3.Connection(this.props.store.networkEntryPoint);
 
@@ -80,31 +77,31 @@ export class Settings extends React.Component {
   render() {
     return (
       <div>
-        <p/>
+        <p />
         <Panel>
           <Panel.Heading>Network Settings</Panel.Heading>
           <Panel.Body>
-            <FormGroup
-              validationState={this.state.validationState}
-            >
+            <FormGroup validationState={this.state.validationState}>
               <InputGroup>
                 <DropdownButton
                   componentClass={InputGroup.Button}
                   title="Network"
                   onSelect={::this.setNetworkEntryPoint}
                 >
-                  {
-                    [
-                      'https://api.testnet.solana.com',
-                      'http://localhost:8899'
-                    ].map((url, index) => <MenuItem key={index} eventKey={url}>{url}</MenuItem>)
-                  }
+                  {[
+                    'https://api.testnet.solana.com',
+                    'http://localhost:8899',
+                  ].map((url, index) => (
+                    <MenuItem key={index} eventKey={url}>
+                      {url}
+                    </MenuItem>
+                  ))}
                 </DropdownButton>
                 <FormControl
                   type="text"
                   value={this.props.store.networkEntryPoint}
                   placeholder="Enter the URI of the network"
-                  onChange={(e) => this.setNetworkEntryPoint(e.target.value)}
+                  onChange={e => this.setNetworkEntryPoint(e.target.value)}
                 />
                 <FormControl.Feedback />
               </InputGroup>
@@ -112,11 +109,13 @@ export class Settings extends React.Component {
             </FormGroup>
           </Panel.Body>
         </Panel>
-        <p/>
+        <p />
         <Panel>
           <Panel.Heading>Account Settings</Panel.Heading>
           <Panel.Body>
-            <Button bsStyle="danger" onClick={() => this.resetAccount()}>Reset Account</Button>
+            <Button bsStyle="danger" onClick={() => this.resetAccount()}>
+              Reset Account
+            </Button>
             <p />
             <HelpBlock>
               Any tokens associated with the current account will be lost
@@ -130,4 +129,3 @@ export class Settings extends React.Component {
 Settings.propTypes = {
   store: PropTypes.object,
 };
-

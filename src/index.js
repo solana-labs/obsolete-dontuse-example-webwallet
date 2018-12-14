@@ -8,7 +8,7 @@ class App extends React.Component {
   state = {
     store: new Store(),
     initialized: false,
-  }
+  };
 
   async componentDidMount() {
     await this.state.store.init();

@@ -51,15 +51,13 @@ class PublicKeyInput extends React.Component {
   render() {
     return (
       <form>
-        <FormGroup
-          validationState={this.state.validationState}
-        >
+        <FormGroup validationState={this.state.validationState}>
           <ControlLabel>Recipient&apos;s Public Key</ControlLabel>
           <FormControl
             type="text"
             value={this.state.value}
             placeholder="Enter the public key of the recipient"
-            onChange={(e) => this.handleChange(e)}
+            onChange={e => this.handleChange(e)}
           />
           <FormControl.Feedback />
         </FormGroup>
@@ -70,7 +68,6 @@ class PublicKeyInput extends React.Component {
 PublicKeyInput.propTypes = {
   onPublicKey: PropTypes.function,
 };
-
 
 class TokenInput extends React.Component {
   state = {
@@ -98,15 +95,13 @@ class TokenInput extends React.Component {
   render() {
     return (
       <form>
-        <FormGroup
-          validationState={this.state.validationState}
-        >
+        <FormGroup validationState={this.state.validationState}>
           <ControlLabel>Amount</ControlLabel>
           <FormControl
             type="text"
             value={this.state.value}
             placeholder="Enter amount to transfer"
-            onChange={(e) => this.handleChange(e)}
+            onChange={e => this.handleChange(e)}
           />
           <FormControl.Feedback />
         </FormGroup>
@@ -117,7 +112,6 @@ class TokenInput extends React.Component {
 TokenInput.propTypes = {
   onAmount: PropTypes.function,
 };
-
 
 class SignatureInput extends React.Component {
   state = {
@@ -150,15 +144,13 @@ class SignatureInput extends React.Component {
   render() {
     return (
       <form>
-        <FormGroup
-          validationState={this.state.validationState}
-        >
+        <FormGroup validationState={this.state.validationState}>
           <ControlLabel>Signature</ControlLabel>
           <FormControl
             type="text"
             value={this.state.value}
             placeholder="Enter a transaction signature"
-            onChange={(e) => this.handleChange(e)}
+            onChange={e => this.handleChange(e)}
           />
           <FormControl.Feedback />
         </FormGroup>
@@ -170,27 +162,26 @@ SignatureInput.propTypes = {
   onSignature: PropTypes.function,
 };
 
-
 class DismissibleErrors extends React.Component {
   render() {
     const errs = this.props.errors.map((err, index) => {
-      return <Alert key={index} bsStyle="danger">
-        <a href="#" onClick={() => this.props.onDismiss(index)}><Glyphicon glyph="remove-sign" /></a> &nbsp;
-        {err}
-      </Alert>;
+      return (
+        <Alert key={index} bsStyle="danger">
+          <a href="#" onClick={() => this.props.onDismiss(index)}>
+            <Glyphicon glyph="remove-sign" />
+          </a>{' '}
+          &nbsp;
+          {err}
+        </Alert>
+      );
     });
-    return (
-      <div>
-        {errs}
-      </div>
-    );
+    return <div>{errs}</div>;
   }
 }
 DismissibleErrors.propTypes = {
   errors: PropTypes.array,
   onDismiss: PropTypes.function,
 };
-
 
 class BusyModal extends React.Component {
   render() {
@@ -201,12 +192,14 @@ class BusyModal extends React.Component {
         aria-labelledby="contained-modal-title-sm"
       >
         <Modal.Header>
-          <Modal.Title id="contained-modal-title-sm">{this.props.title}</Modal.Title>
+          <Modal.Title id="contained-modal-title-sm">
+            {this.props.title}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {this.props.text}
-          <br/>
-          <br/>
+          <br />
+          <br />
           <ProgressBar active now={100} />
         </Modal.Body>
       </Modal>
@@ -217,7 +210,6 @@ BusyModal.propTypes = {
   title: PropTypes.string,
   text: PropTypes.string,
 };
-
 
 class SettingsModal extends React.Component {
   render() {
@@ -245,7 +237,6 @@ SettingsModal.propTypes = {
   store: PropTypes.object,
 };
 
-
 export class Wallet extends React.Component {
   state = {
     errors: [],
@@ -266,7 +257,7 @@ export class Wallet extends React.Component {
   setConfirmationSignature(confirmationSignature) {
     this.setState({
       transactionConfirmed: null,
-      confirmationSignature
+      confirmationSignature,
     });
   }
 
@@ -309,7 +300,7 @@ export class Wallet extends React.Component {
     this.web3solAccount = new web3.Account(this.props.store.accountSecretKey);
     this.web3sol = new web3.Connection(this.props.store.networkEntryPoint);
     this.forceUpdate();
-  }
+  };
 
   componentDidMount() {
     this.props.store.onChange(this.onStoreChange);
@@ -320,100 +311,85 @@ export class Wallet extends React.Component {
     this.props.store.removeChangeListener(this.onStoreChange);
   }
 
-
   copyPublicKey() {
     copy(this.web3solAccount.publicKey);
   }
 
   refreshBalance() {
-    this.runModal(
-      'Updating Account Balance',
-      'Please wait...',
-      async () => {
-        this.setState({
-          balance: await this.web3sol.getBalance(this.web3solAccount.publicKey),
-        });
-      }
-    );
+    this.runModal('Updating Account Balance', 'Please wait...', async () => {
+      this.setState({
+        balance: await this.web3sol.getBalance(this.web3solAccount.publicKey),
+      });
+    });
   }
 
   requestAirdrop() {
-    this.runModal(
-      'Requesting Airdrop',
-      'Please wait...',
-      async () => {
-        await this.web3sol.requestAirdrop(this.web3solAccount.publicKey, 1000);
-        this.setState({
-          balance: await this.web3sol.getBalance(this.web3solAccount.publicKey),
-        });
-      }
-    );
+    this.runModal('Requesting Airdrop', 'Please wait...', async () => {
+      await this.web3sol.requestAirdrop(this.web3solAccount.publicKey, 1000);
+      this.setState({
+        balance: await this.web3sol.getBalance(this.web3solAccount.publicKey),
+      });
+    });
   }
 
   sendTransaction() {
-    this.runModal(
-      'Sending Transaction',
-      'Please wait...',
-      async () => {
-        const transaction = web3.SystemProgram.move(
-          this.web3solAccount.publicKey,
-          new web3.PublicKey(this.state.recipientPublicKey),
-          this.state.recipientAmount,
+    this.runModal('Sending Transaction', 'Please wait...', async () => {
+      const transaction = web3.SystemProgram.move(
+        this.web3solAccount.publicKey,
+        new web3.PublicKey(this.state.recipientPublicKey),
+        this.state.recipientAmount,
+      );
+      const signature = await this.web3sol.sendTransaction(
+        transaction,
+        this.web3solAccount,
+      );
 
-        );
-        const signature = await this.web3sol.sendTransaction(transaction, this.web3solAccount);
-
-        await this.web3sol.confirmTransaction(signature);
-        this.setState({
-          balance: await this.web3sol.getBalance(this.web3solAccount.publicKey),
-        });
-      }
-    );
+      await this.web3sol.confirmTransaction(signature);
+      this.setState({
+        balance: await this.web3sol.getBalance(this.web3solAccount.publicKey),
+      });
+    });
   }
 
   confirmTransaction() {
-    this.runModal(
-      'Confirming Transaction',
-      'Please wait...',
-      async () => {
-        const result = await this.web3sol.confirmTransaction(
-          this.state.confirmationSignature,
-        );
-        this.setState({
-          transactionConfirmed: result
-        });
-      }
-    );
+    this.runModal('Confirming Transaction', 'Please wait...', async () => {
+      const result = await this.web3sol.confirmTransaction(
+        this.state.confirmationSignature,
+      );
+      this.setState({
+        transactionConfirmed: result,
+      });
+    });
   }
 
   render() {
     const copyTooltip = (
-      <Tooltip id="clipboard">
-        Copy public key to clipboard
-      </Tooltip>
+      <Tooltip id="clipboard">Copy public key to clipboard</Tooltip>
     );
     const refreshBalanceTooltip = (
-      <Tooltip id="refresh">
-        Refresh account balance
-      </Tooltip>
+      <Tooltip id="refresh">Refresh account balance</Tooltip>
     );
-    const airdropTooltip = (
-      <Tooltip id="airdrop">
-        Request an airdrop
-      </Tooltip>
-    );
+    const airdropTooltip = <Tooltip id="airdrop">Request an airdrop</Tooltip>;
 
-    const busyModal = this.state.busyModal ?
-      <BusyModal show title={this.state.busyModal.title} text={this.state.busyModal.text} /> : null;
+    const busyModal = this.state.busyModal ? (
+      <BusyModal
+        show
+        title={this.state.busyModal.title}
+        text={this.state.busyModal.text}
+      />
+    ) : null;
 
-    const settingsModal = this.state.settingsModal ?
+    const settingsModal = this.state.settingsModal ? (
       <SettingsModal
         show
         store={this.props.store}
         onHide={() => this.setState({settingsModal: false})}
-      /> : null;
+      />
+    ) : null;
 
-    const sendDisabled = this.state.recipientPublicKey === null || this.state.recipientAmount === null;
+    const sendDisabled =
+      this.state.recipientPublicKey === null ||
+      this.state.recipientAmount === null;
     const confirmDisabled = this.state.confirmationSignature === null;
     const airdropDisabled = this.state.balance !== 0;
 
@@ -429,12 +405,20 @@ export class Wallet extends React.Component {
         </div>
         {busyModal}
         {settingsModal}
-        <DismissibleErrors errors={this.state.errors} onDismiss={(index) => this.dismissError(index)}/>
+        <DismissibleErrors
+          errors={this.state.errors}
+          onDismiss={index => this.dismissError(index)}
+        />
         <Well>
           Account Public Key:
           <FormGroup>
             <InputGroup>
-              <FormControl readOnly type="text" size="21" value={this.web3solAccount.publicKey}/>
+              <FormControl
+                readOnly
+                type="text"
+                size="21"
+                value={this.web3solAccount.publicKey}
+              />
               <InputGroup.Button>
                 <OverlayTrigger placement="bottom" overlay={copyTooltip}>
                   <Button onClick={() => this.copyPublicKey()}>
@@ -444,7 +428,7 @@ export class Wallet extends React.Component {
               </InputGroup.Button>
             </InputGroup>
           </FormGroup>
-          <p/>
+          <p />
           Account Balance: {this.state.balance} &nbsp;
           <OverlayTrigger placement="top" overlay={refreshBalanceTooltip}>
             <Button onClick={() => this.refreshBalance()}>
@@ -452,38 +436,58 @@ export class Wallet extends React.Component {
             </Button>
           </OverlayTrigger>
           <OverlayTrigger placement="bottom" overlay={airdropTooltip}>
-            <Button disabled={airdropDisabled} onClick={() => this.requestAirdrop()}>
+            <Button
+              disabled={airdropDisabled}
+              onClick={() => this.requestAirdrop()}
+            >
               <Glyphicon glyph="send" />
             </Button>
           </OverlayTrigger>
         </Well>
-        <p/>
+        <p />
         <Panel>
           <Panel.Heading>Send Tokens</Panel.Heading>
           <Panel.Body>
-            <PublicKeyInput onPublicKey={(publicKey) => this.setRecipientPublicKey(publicKey)}/>
-            <TokenInput onAmount={(amount) => this.setRecipientAmount(amount)}/>
+            <PublicKeyInput
+              onPublicKey={publicKey => this.setRecipientPublicKey(publicKey)}
+            />
+            <TokenInput onAmount={amount => this.setRecipientAmount(amount)} />
             <div className="text-center">
-              <Button disabled={sendDisabled} onClick={() => this.sendTransaction()}>Send</Button>
+              <Button
+                disabled={sendDisabled}
+                onClick={() => this.sendTransaction()}
+              >
+                Send
+              </Button>
             </div>
           </Panel.Body>
         </Panel>
-        <p/>
+        <p />
         <Panel>
           <Panel.Heading>Confirm Transaction</Panel.Heading>
           <Panel.Body>
-            <SignatureInput onSignature={(signature) => this.setConfirmationSignature(signature)}/>
+            <SignatureInput
+              onSignature={signature =>
+                this.setConfirmationSignature(signature)
+              }
+            />
             <div className="text-center">
-              <Button disabled={confirmDisabled} onClick={() => this.confirmTransaction()}>Confirm</Button>
+              <Button
+                disabled={confirmDisabled}
+                onClick={() => this.confirmTransaction()}
+              >
+                Confirm
+              </Button>
             </div>
-            {
-              typeof this.state.transactionConfirmed === 'boolean'
-                ? (
-                  <b>
-                    {this.state.transactionConfirmed ? 'CONFIRMED' : 'NOT CONFIRMED'}
-                  </b>
-                ) : ''
-            }
+            {typeof this.state.transactionConfirmed === 'boolean' ? (
+              <b>
+                {this.state.transactionConfirmed
+                  ? 'CONFIRMED'
+                  : 'NOT CONFIRMED'}
+              </b>
+            ) : (
+              ''
+            )}
           </Panel.Body>
         </Panel>
       </div>
@@ -493,4 +497,3 @@ export class Wallet extends React.Component {
 Wallet.propTypes = {
   store: PropTypes.object,
 };
-
