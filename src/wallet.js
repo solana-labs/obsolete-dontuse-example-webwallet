@@ -298,6 +298,7 @@ export class Wallet extends React.Component {
     try {
       await f();
     } catch (err) {
+      console.log(err);
       this.addError(err.message);
     }
 
@@ -360,7 +361,7 @@ export class Wallet extends React.Component {
           this.state.recipientAmount,
 
         );
-        const signature = await this.web3sol.sendTransaction(this.web3solAccount, transaction);
+        const signature = await this.web3sol.sendTransaction(transaction, this.web3solAccount);
 
         await this.web3sol.confirmTransaction(signature);
         this.setState({
