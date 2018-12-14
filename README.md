@@ -1,3 +1,8 @@
+[![Build status][travis-image]][travis-url]
+
+[travis-image]: https://api.travis-ci.org/solana-labs/example-webwallet.svg?branch=master
+[travis-url]: https://travis-ci.org/solana-labs/example-webwallet
+
 # Example Web Wallet
 
 This project demonstrates how to use the [Solana Javascript API](https://github.com/solana-labs/solana-web3.js)
