@@ -19,7 +19,7 @@ export class Store {
     }
 
     if (typeof this.networkEntryPoint !== 'string') {
-      this.networkEntryPoint = 'https://api.testnet.solana.com';
+      this.networkEntryPoint = web3.testnetChannelEndpoint();
     }
 
     if (!this.accountSecretKey) {

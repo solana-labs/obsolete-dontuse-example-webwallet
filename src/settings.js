@@ -89,7 +89,7 @@ export class Settings extends React.Component {
                   onSelect={::this.setNetworkEntryPoint}
                 >
                   {[
-                    'https://api.testnet.solana.com',
+                    web3.testnetChannelEndpoint(),
                     'http://localhost:8899',
                   ].map((url, index) => (
                     <MenuItem key={index} eventKey={url}>
