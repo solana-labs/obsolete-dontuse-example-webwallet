@@ -51,7 +51,9 @@ export class Settings extends React.Component {
     });
 
     try {
-      const blockhash = await connection.getRecentBlockhash();
+      const [
+        blockhash /*, feeCalculator*/
+      ] = await connection.getRecentBlockhash();
       console.log('blockhash:', blockhash);
       if (this.state.checkNetworkCount <= checkNetworkCount) {
         this.setState({
@@ -88,14 +90,13 @@ export class Settings extends React.Component {
                   title="Network"
                   onSelect={::this.setNetworkEntryPoint}
                 >
-                  {[
-                    web3.testnetChannelEndpoint(),
-                    'http://localhost:8899',
-                  ].map((url, index) => (
-                    <MenuItem key={index} eventKey={url}>
-                      {url}
-                    </MenuItem>
-                  ))}
+                  {[web3.testnetChannelEndpoint(), 'http://localhost:8899'].map(
+                    (url, index) => (
+                      <MenuItem key={index} eventKey={url}>
+                        {url}
+                      </MenuItem>
+                    ),
+                  )}
                 </DropdownButton>
                 <FormControl
                   type="text"
