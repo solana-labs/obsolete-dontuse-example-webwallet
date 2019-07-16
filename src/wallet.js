@@ -264,9 +264,9 @@ export class Wallet extends React.Component {
     requesterOrigin: '*',
     requestPending: false,
     requestedPublicKey: '',
-    requestedAmount: 0,
+    requestedAmount: '',
     recipientPublicKey: '',
-    recipientAmount: 0,
+    recipientAmount: '',
     confirmationSignature: null,
     transactionConfirmed: null,
   };
@@ -423,7 +423,7 @@ export class Wallet extends React.Component {
   sendTransaction(closeOnSuccess) {
     this.runModal('Sending Transaction', 'Please wait...', async () => {
       const amount = this.state.recipientAmount;
-      this.setState({requestedAmount: 0, requestPending: false});
+      this.setState({requestedAmount: '', requestPending: false});
       const transaction = web3.SystemProgram.transfer(
         this.state.account.publicKey,
         new web3.PublicKey(this.state.recipientPublicKey),
@@ -589,7 +589,7 @@ export class Wallet extends React.Component {
           <TokenInput
             key={this.state.requestedAmount + this.state.balance}
             maxValue={this.state.balance}
-            defaultValue={this.state.requestedAmount || ''}
+            defaultValue={this.state.requestedAmount}
             onAmount={amount => this.setRecipientAmount(amount)}
           />
           <div className="text-center">
