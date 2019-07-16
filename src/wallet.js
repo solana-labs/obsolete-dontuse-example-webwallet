@@ -342,18 +342,26 @@ export class Wallet extends React.Component {
       return;
     }
 
-    if (params.network === this.props.store.networkEntryPoint) {
-      this.setState({
-        requesterOrigin: origin,
-        requestPending: true,
-        requestedAmount: `${params.amount || ''}`,
-        requestedPublicKey: params.pubkey,
-      });
-    } else {
-      this.addError(
-        `Request network "${params.network}" does not match wallet network`,
-      );
+    let requestedNetwork;
+    try {
+      requestedNetwork = new URL(params.network).origin;
+    } catch (err) {
+      this.addError(`Request network is invalid: "${params.network}"`);
+      return;
     }
+
+    const walletNetwork = new URL(this.props.store.networkEntryPoint).origin;
+    if (requestedNetwork !== walletNetwork) {
+      this.props.store.setNetworkEntryPoint(requestedNetwork);
+      this.addWarning(`Changed wallet network from "${walletNetwork}" to "${requestedNetwork}"`);
+    }
+
+    this.setState({
+      requesterOrigin: origin,
+      requestPending: true,
+      requestedAmount: `${params.amount || ''}`,
+      requestedPublicKey: params.pubkey,
+    });
   }
 
   postWindowMessage(method, params) {
