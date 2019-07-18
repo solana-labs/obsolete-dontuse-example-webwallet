@@ -146,7 +146,9 @@ export class Account extends React.Component {
               autoComplete="new-password"
               size="21"
               value={this.state.generatedPhrase}
-              onChange={() => { return false; }}
+              onChange={() => {
+                return false;
+              }}
             />
             <InputGroup.Button>
               <OverlayTrigger placement="bottom" overlay={copyTooltip}>

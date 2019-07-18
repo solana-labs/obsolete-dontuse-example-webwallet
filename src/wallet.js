@@ -53,6 +53,23 @@ class PublicKeyInput extends React.Component {
     this.props.onPublicKey(validationState === 'success' ? value : null);
   }
 
+  identityText() {
+    if (this.props.identity) {
+      const {name, keybaseId} = this.props.identity;
+      if (keybaseId) {
+        const verifyUrl = `https://keybase.pub/${keybaseId}/solana/validator-${this.state.value}`;
+        return (
+          <span>
+            {`Identified "${name}" who can be verified on `}
+            <a href={verifyUrl}>Keybase</a>
+          </span>
+        );
+      } else {
+        return <span>{`Identified "${name}"`}</span>;
+      }
+    }
+  }
+
   render() {
     return (
       <form>
@@ -64,6 +81,7 @@ class PublicKeyInput extends React.Component {
             placeholder="Enter the public key of the recipient"
             onChange={e => this.handleChange(e.target.value)}
           />
+          <HelpBlock>{this.identityText()}</HelpBlock>
           <FormControl.Feedback />
         </FormGroup>
       </form>
@@ -73,6 +91,7 @@ class PublicKeyInput extends React.Component {
 PublicKeyInput.propTypes = {
   onPublicKey: PropTypes.func,
   defaultValue: PropTypes.string,
+  identity: PropTypes.object,
 };
 
 class TokenInput extends React.Component {
@@ -267,6 +286,7 @@ export class Wallet extends React.Component {
     requestedAmount: '',
     recipientPublicKey: '',
     recipientAmount: '',
+    recipientIdentity: null,
     confirmationSignature: null,
     transactionConfirmed: null,
   };
@@ -278,8 +298,27 @@ export class Wallet extends React.Component {
     });
   }
 
-  setRecipientPublicKey(recipientPublicKey) {
+  async setRecipientPublicKey(recipientPublicKey) {
     this.setState({recipientPublicKey});
+    if (recipientPublicKey) {
+      const recipientIdentity = await this.fetchIdentity(
+        new web3.PublicKey(recipientPublicKey),
+      );
+      this.setState({recipientIdentity});
+    }
+  }
+
+  async fetchIdentity(publicKey) {
+    const configKey = new web3.PublicKey(
+      'Config1111111111111111111111111111111111111',
+    );
+    const accounts = await this.web3sol.getProgramAccounts(configKey);
+    for (const account of accounts) {
+      const validatorInfo = web3.ValidatorInfo.fromConfigData(account[1].data);
+      if (validatorInfo && validatorInfo.key.equals(publicKey)) {
+        return validatorInfo.info;
+      }
+    }
   }
 
   setRecipientAmount(recipientAmount) {
@@ -353,7 +392,9 @@ export class Wallet extends React.Component {
     const walletNetwork = new URL(this.props.store.networkEntryPoint).origin;
     if (requestedNetwork !== walletNetwork) {
       this.props.store.setNetworkEntryPoint(requestedNetwork);
-      this.addWarning(`Changed wallet network from "${walletNetwork}" to "${requestedNetwork}"`);
+      this.addWarning(
+        `Changed wallet network from "${walletNetwork}" to "${requestedNetwork}"`,
+      );
     }
 
     this.setState({
@@ -585,6 +626,7 @@ export class Wallet extends React.Component {
             key={this.state.requestedPublicKey}
             defaultValue={this.state.requestedPublicKey || ''}
             onPublicKey={publicKey => this.setRecipientPublicKey(publicKey)}
+            identity={this.state.recipientIdentity}
           />
           <TokenInput
             key={this.state.requestedAmount + this.state.balance}
@@ -620,6 +662,7 @@ export class Wallet extends React.Component {
         <Panel.Body>
           <PublicKeyInput
             onPublicKey={publicKey => this.setRecipientPublicKey(publicKey)}
+            identity={this.state.recipientIdentity}
           />
           <TokenInput
             key={this.state.balance}

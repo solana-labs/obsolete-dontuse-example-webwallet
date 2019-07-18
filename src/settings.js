@@ -13,7 +13,6 @@ import PropTypes from 'prop-types';
 import * as web3 from '@solana/web3.js';
 
 export class Settings extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -37,9 +36,12 @@ export class Settings extends React.Component {
   }
 
   onStoreChange() {
-    this.setState({
-      networkEntryPoint: this.props.store.networkEntryPoint,
-    }, this.checkNetwork);
+    this.setState(
+      {
+        networkEntryPoint: this.props.store.networkEntryPoint,
+      },
+      this.checkNetwork,
+    );
   }
 
   setNetworkEntryPoint(url) {
@@ -102,13 +104,14 @@ export class Settings extends React.Component {
                   title="Network"
                   onSelect={::this.setNetworkEntryPoint}
                 >
-                  {[web3.testnetChannelEndpoint(process.env.CHANNEL), 'http://localhost:8899'].map(
-                    (url, index) => (
-                      <MenuItem key={index} eventKey={url}>
-                        {url}
-                      </MenuItem>
-                    ),
-                  )}
+                  {[
+                    web3.testnetChannelEndpoint(process.env.CHANNEL),
+                    'http://localhost:8899',
+                  ].map((url, index) => (
+                    <MenuItem key={index} eventKey={url}>
+                      {url}
+                    </MenuItem>
+                  ))}
                 </DropdownButton>
                 <FormControl
                   type="text"
