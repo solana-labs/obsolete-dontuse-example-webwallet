@@ -23,6 +23,7 @@ const RECOVER_WALLET_MODE = 2;
 export class Account extends React.Component {
   state = {
     walletMode: GENERATE_WALLET_MODE,
+    revealSeedPhrase: false,
     generatedPhrase: bip39.generateMnemonic(),
     recoveredPhrase: '',
   };
@@ -95,6 +96,41 @@ export class Account extends React.Component {
     );
   }
 
+  seedPhraseInputType() {
+    if (this.state.revealSeedPhrase) {
+      return 'text';
+    } else {
+      return 'password';
+    }
+  }
+
+  toggleReveal() {
+    this.setState({revealSeedPhrase: !this.state.revealSeedPhrase});
+  }
+
+  renderRevealToggle() {
+    let glyph = 'eye-close';
+    let toggleText = 'Reveal';
+    if (this.state.revealSeedPhrase) {
+      glyph = 'eye-open';
+      toggleText = 'Hide';
+    }
+
+    const revealTooltip = (
+      <Tooltip id="reveal">{toggleText}</Tooltip>
+    );
+
+    return (
+      <InputGroup.Button>
+        <OverlayTrigger placement="bottom" overlay={revealTooltip}>
+          <Button onClick={() => this.toggleReveal()}>
+            <Glyphicon glyph={glyph} />
+          </Button>
+        </OverlayTrigger>
+      </InputGroup.Button>
+    );
+  }
+
   renderRecoverWalletMode() {
     return (
       <React.Fragment>
@@ -102,13 +138,17 @@ export class Account extends React.Component {
           <ControlLabel>
             Enter a valid seed phrase to recover a wallet
           </ControlLabel>
-          <FormControl
-            type="password"
-            autoComplete="current-password"
-            value={this.state.recoveredPhrase}
-            placeholder="Enter seed phrase"
-            onChange={e => this.onRecoverPhraseChange(e)}
-          />
+          <InputGroup>
+            {this.renderRevealToggle()}
+            <FormControl
+              autoFocus="true"
+              type={this.seedPhraseInputType()}
+              autoComplete="current-password"
+              value={this.state.recoveredPhrase}
+              placeholder="Enter seed phrase"
+              onChange={e => this.onRecoverPhraseChange(e)}
+            />
+          </InputGroup>
           <FormControl.Feedback />
           <HelpBlock>Seed phrase should be 12 words in length.</HelpBlock>
         </FormGroup>
@@ -121,10 +161,6 @@ export class Account extends React.Component {
   }
 
   renderGenerateWalletMode() {
-    const regenerateTooltip = (
-      <Tooltip id="clipboard">Generate new phrase</Tooltip>
-    );
-
     const copyTooltip = (
       <Tooltip id="clipboard">Copy seed phrase to clipboard</Tooltip>
     );
@@ -134,15 +170,10 @@ export class Account extends React.Component {
         <FormGroup>
           <ControlLabel>Generated Seed Phrase</ControlLabel>
           <InputGroup>
-            <InputGroup.Button>
-              <OverlayTrigger placement="bottom" overlay={regenerateTooltip}>
-                <Button onClick={() => this.regenerateSeedPhrase()}>
-                  <Glyphicon glyph="refresh" />
-                </Button>
-              </OverlayTrigger>
-            </InputGroup.Button>
+            {this.renderRevealToggle()}
             <FormControl
-              type="password"
+              autoFocus="true"
+              type={this.seedPhraseInputType()}
               autoComplete="new-password"
               size="21"
               value={this.state.generatedPhrase}
