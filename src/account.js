@@ -141,7 +141,7 @@ export class Account extends React.Component {
           <InputGroup>
             {this.renderRevealToggle()}
             <FormControl
-              autoFocus="true"
+              autoFocus={true}
               type={this.seedPhraseInputType()}
               autoComplete="current-password"
               value={this.state.recoveredPhrase}
@@ -172,7 +172,7 @@ export class Account extends React.Component {
           <InputGroup>
             {this.renderRevealToggle()}
             <FormControl
-              autoFocus="true"
+              autoFocus={true}
               type={this.seedPhraseInputType()}
               autoComplete="new-password"
               size="21"
