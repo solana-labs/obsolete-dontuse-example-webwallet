@@ -55,9 +55,9 @@ class PublicKeyInput extends React.Component {
 
   identityText() {
     if (this.props.identity) {
-      const {name, keybaseId} = this.props.identity;
-      if (keybaseId) {
-        const verifyUrl = `https://keybase.pub/${keybaseId}/solana/validator-${this.state.value}`;
+      const {name, keybaseUsername} = this.props.identity;
+      if (keybaseUsername) {
+        const verifyUrl = `https://keybase.pub/${keybaseUsername}/solana/validator-${this.state.value}`;
         return (
           <span>
             {`Identified "${name}" who can be verified on `}
