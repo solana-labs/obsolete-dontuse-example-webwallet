@@ -94,3 +94,8 @@ hr {
     margin-right: 15px;
   }
 }
+@media (max-width: 992px) {
+  .account-header {
+    flex-wrap: wrap;
+  }
+}
