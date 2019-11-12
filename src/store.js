@@ -56,11 +56,8 @@ export class Store {
   }
 
   async setFeeCalculator(feeCalculator) {
-    if (feeCalculator !== this.feeCalculator) {
-      this.feeCalculator = feeCalculator;
-      this._ee.emit('change');
-      await this._lf.setItem('feeCalculator', feeCalculator);
-    }
+    this.feeCalculator = feeCalculator;
+    await this._lf.setItem('feeCalculator', feeCalculator);
   }
 
   onChange(fn) {
