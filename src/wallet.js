@@ -320,6 +320,7 @@ export class Wallet extends React.Component {
     settingsModal: false,
     balance: 0,
     account: null,
+    url: '',
     requestMode: false,
     requesterOrigin: '*',
     requestPending: false,
@@ -406,7 +407,11 @@ export class Wallet extends React.Component {
   }
 
   onStoreChange = async () => {
-    const url = this.props.store.networkEntryPoint;
+    let url = this.state.url;
+    if (url !== this.props.store.networkEntryPoint) {
+      url = this.props.store.networkEntryPoint;
+    }
+
     this.feeCalculator = this.props.store.feeCalculator;
     this.web3sol = new web3.Connection(url);
     const version = await this.web3sol.getVersion();
@@ -417,11 +422,20 @@ export class Wallet extends React.Component {
       this.web3sol = new web3.Connection(url, 'recent');
     }
 
+    const [, feeCalculator] = await this.web3sol.getRecentBlockhash();
+    console.log({feeCalculator});
+    this.props.store.setFeeCalculator(feeCalculator);
+    this.feeCalculator = this.props.store.feeCalculator;
+
+    if (url !== this.state.url) {
+      this.addWarning(`Changed wallet network to "${url}"`);
+    }
+
     let account = null;
     if (this.props.store.accountSecretKey) {
       account = new web3.Account(this.props.store.accountSecretKey);
     }
-    this.setState({account}, this.refreshBalance);
+    this.setState({account, url}, this.refreshBalance);
   };
 
   onAddFunds(params, origin) {
@@ -442,10 +456,7 @@ export class Wallet extends React.Component {
 
     const walletNetwork = new URL(this.props.store.networkEntryPoint).origin;
     if (requestedNetwork !== walletNetwork) {
-      this.props.store.setNetworkEntryPoint(requestedNetwork);
-      this.addWarning(
-        `Changed wallet network from "${walletNetwork}" to "${requestedNetwork}"`,
-      );
+      this.setNetworkEntryPoint(requestedNetwork);
     }
 
     this.setState({
@@ -482,6 +493,21 @@ export class Wallet extends React.Component {
   };
 
   componentDidMount() {
+    const url = this.props.store.networkEntryPoint;
+    let account;
+    if (this.props.store.accountSecretKey) {
+      account = new web3.Account(this.props.store.accountSecretKey);
+    }
+
+    this.setState({
+      account,
+      busyModal: {
+        title: 'Initializing',
+        text: 'Please wait...',
+      },
+      url,
+    });
+
     this.props.store.onChange(this.onStoreChange);
     this.onStoreChange();
     if (window.opener) {
@@ -611,11 +637,20 @@ export class Wallet extends React.Component {
     );
   }
 
-  setNetworkEntryPoint = async val => {
-    this.props.store.setNetworkEntryPoint(val);
-    await this.web3sol.getBalance(this.state.account.publicKey);
-    this.addInfo(`Changed wallet network to ${val}`);
-  };
+  setNetworkEntryPoint(val) {
+    this.setState(
+      {
+        busyModal: {
+          title: 'Changing network',
+          text: 'Please wait...',
+        },
+      },
+      () => {
+        this.props.store.setNetworkEntryPoint(val);
+      },
+    );
+  }
+
   renderMainPanel() {
     const {store} = this.props;
     const {networkEntryPoint} = store;
@@ -636,7 +671,7 @@ export class Wallet extends React.Component {
                   <div className="network-select__title">Network:</div>
                   <NetworkSelect
                     value={networkEntryPoint}
-                    onChange={this.setNetworkEntryPoint}
+                    onChange={this.setNetworkEntryPoint.bind(this)}
                   />
                 </div>
                 <button onClick={() => this.setState({settingsModal: true})}>
@@ -754,7 +789,7 @@ export class Wallet extends React.Component {
                   <div className="network-select__title">Network:</div>
                   <NetworkSelect
                     value={networkEntryPoint}
-                    onChange={this.setNetworkEntryPoint}
+                    onChange={this.setNetworkEntryPoint.bind(this)}
                   />
                 </div>
                 <button onClick={() => this.setState({settingsModal: true})}>

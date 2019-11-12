@@ -52,9 +52,7 @@ export class Settings extends React.Component {
   async checkNetwork() {
     if (!this.state.networkEntryPoint) return;
     console.log('Checking network:', this.state.networkEntryPoint);
-
     const connection = new web3.Connection(this.state.networkEntryPoint);
-
     const checkNetworkCount = this.state.checkNetworkCount + 1;
     this.setState({
       validationState: 'warning',
@@ -63,9 +61,7 @@ export class Settings extends React.Component {
     });
 
     try {
-      const [
-        blockhash, feeCalculator,
-      ] = await connection.getRecentBlockhash();
+      const [blockhash, feeCalculator] = await connection.getRecentBlockhash();
       console.log('blockhash:', blockhash);
       if (this.state.checkNetworkCount <= checkNetworkCount) {
         this.props.store.setFeeCalculator(feeCalculator);

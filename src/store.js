@@ -22,13 +22,15 @@ export class Store {
     }
 
     if (typeof this.networkEntryPoint !== 'string') {
-      this.setNetworkEntryPoint(web3.testnetChannelEndpoint(process.env.CHANNEL));
+      this.setNetworkEntryPoint(
+        web3.testnetChannelEndpoint(process.env.CHANNEL),
+      );
+    } else {
+      const connection = new web3.Connection(this.networkEntryPoint);
+      connection.getRecentBlockhash().then(([, feeCalculator]) => {
+        this.setFeeCalculator(feeCalculator);
+      });
     }
-
-    const connection = new web3.Connection(this.networkEntryPoint);
-    connection.getRecentBlockhash().then(([, feeCalculator]) => {
-      this.setFeeCalculator(feeCalculator);
-    });
 
     this._ee.emit('change');
   }
