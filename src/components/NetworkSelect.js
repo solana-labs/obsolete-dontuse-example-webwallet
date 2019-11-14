@@ -14,7 +14,9 @@ const NetworkSelect = ({value, onChange}) => {
           onSelect={onChange}
         >
           {[
-            web3.testnetChannelEndpoint(process.env.CHANNEL),
+            web3.testnetChannelEndpoint('stable'),
+            web3.testnetChannelEndpoint('beta'),
+            web3.testnetChannelEndpoint('edge'),
             'http://localhost:8899',
           ].map((url, index) => (
             <MenuItem key={index} eventKey={url} active={url === value}>
