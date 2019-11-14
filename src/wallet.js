@@ -407,35 +407,39 @@ export class Wallet extends React.Component {
   }
 
   onStoreChange = async () => {
-    let url = this.state.url;
-    if (url !== this.props.store.networkEntryPoint) {
-      url = this.props.store.networkEntryPoint;
+    try {
+      let url = this.state.url;
+      if (url !== this.props.store.networkEntryPoint) {
+        url = this.props.store.networkEntryPoint;
+      }
+
+      this.feeCalculator = this.props.store.feeCalculator;
+      this.web3sol = new web3.Connection(url);
+      const version = await this.web3sol.getVersion();
+
+      // commitment params are only supported >= 0.21.0
+      const solanaCoreVersion = version['solana-core'].split(' ')[0];
+      if (semver.gte(solanaCoreVersion, '0.21.0')) {
+        this.web3sol = new web3.Connection(url, 'recent');
+      }
+
+      const [, feeCalculator] = await this.web3sol.getRecentBlockhash();
+      this.props.store.setFeeCalculator(feeCalculator);
+      this.feeCalculator = this.props.store.feeCalculator;
+
+      if (url !== this.state.url) {
+        this.addWarning(`Changed wallet network to "${url}"`);
+      }
+
+      let account = null;
+      if (this.props.store.accountSecretKey) {
+        account = new web3.Account(this.props.store.accountSecretKey);
+      }
+      this.setState({account, url}, this.refreshBalance);
+    } catch (err) {
+      this.setState({busyModal: null});
+      this.addWarning(`Encountered unexpected error, please report!`);
     }
-
-    this.feeCalculator = this.props.store.feeCalculator;
-    this.web3sol = new web3.Connection(url);
-    const version = await this.web3sol.getVersion();
-
-    // commitment params are only supported >= 0.21.0
-    const solanaCoreVersion = version['solana-core'].split(' ')[0];
-    if (semver.gte(solanaCoreVersion, '0.21.0')) {
-      this.web3sol = new web3.Connection(url, 'recent');
-    }
-
-    const [, feeCalculator] = await this.web3sol.getRecentBlockhash();
-    console.log({feeCalculator});
-    this.props.store.setFeeCalculator(feeCalculator);
-    this.feeCalculator = this.props.store.feeCalculator;
-
-    if (url !== this.state.url) {
-      this.addWarning(`Changed wallet network to "${url}"`);
-    }
-
-    let account = null;
-    if (this.props.store.accountSecretKey) {
-      account = new web3.Account(this.props.store.accountSecretKey);
-    }
-    this.setState({account, url}, this.refreshBalance);
   };
 
   onAddFunds(params, origin) {
@@ -638,17 +642,19 @@ export class Wallet extends React.Component {
   }
 
   setNetworkEntryPoint(val) {
-    this.setState(
-      {
-        busyModal: {
-          title: 'Changing network',
-          text: 'Please wait...',
+    if (this.props.store.networkEntryPoint !== val) {
+      this.setState(
+        {
+          busyModal: {
+            title: 'Changing network',
+            text: 'Please wait...',
+          },
         },
-      },
-      () => {
-        this.props.store.setNetworkEntryPoint(val);
-      },
-    );
+        () => {
+          this.props.store.setNetworkEntryPoint(val);
+        },
+      );
+    }
   }
 
   renderMainPanel() {
