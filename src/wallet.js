@@ -17,7 +17,6 @@ import {
 } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import copy from 'copy-to-clipboard';
-import semver from 'semver';
 import * as web3 from '@solana/web3.js';
 
 import Loader from './components/Loader';
@@ -399,47 +398,34 @@ export class Wallet extends React.Component {
     try {
       await f();
     } catch (err) {
-      console.log(err);
+      console.error(err);
       this.addError(err.message);
     }
 
     this.setState({busyModal: null});
   }
 
-  onStoreChange = async () => {
-    try {
-      let url = this.state.url;
-      if (url !== this.props.store.networkEntryPoint) {
-        url = this.props.store.networkEntryPoint;
-      }
+  onStoreChange = () => {
+    const {
+      networkEntryPoint: url,
+      feeCalculator,
+      connection,
+      accountSecretKey,
+    } = this.props.store;
 
-      this.feeCalculator = this.props.store.feeCalculator;
-      this.web3sol = new web3.Connection(url);
-      const version = await this.web3sol.getVersion();
+    this.feeCalculator = feeCalculator;
+    this.web3sol = connection;
 
-      // commitment params are only supported >= 0.21.0
-      const solanaCoreVersion = version['solana-core'].split(' ')[0];
-      if (semver.gte(solanaCoreVersion, '0.21.0')) {
-        this.web3sol = new web3.Connection(url, 'recent');
-      }
-
-      const [, feeCalculator] = await this.web3sol.getRecentBlockhash();
-      this.props.store.setFeeCalculator(feeCalculator);
-      this.feeCalculator = this.props.store.feeCalculator;
-
-      if (url !== this.state.url) {
-        this.addWarning(`Changed wallet network to "${url}"`);
-      }
-
-      let account = null;
-      if (this.props.store.accountSecretKey) {
-        account = new web3.Account(this.props.store.accountSecretKey);
-      }
-      this.setState({account, url}, this.refreshBalance);
-    } catch (err) {
-      this.setState({busyModal: null});
-      this.addWarning(`Encountered unexpected error, please report!`);
+    if (url !== this.state.url) {
+      this.addWarning(`Changed wallet network to "${url}"`);
     }
+
+    let account = null;
+    if (accountSecretKey) {
+      account = new web3.Account(accountSecretKey);
+    }
+
+    this.setState({account, url}, this.refreshBalance);
   };
 
   onAddFunds(params, origin) {
@@ -497,26 +483,13 @@ export class Wallet extends React.Component {
   };
 
   componentDidMount() {
-    const url = this.props.store.networkEntryPoint;
-    let account;
-    if (this.props.store.accountSecretKey) {
-      account = new web3.Account(this.props.store.accountSecretKey);
-    }
-
-    this.setState({
-      account,
-      busyModal: {
-        title: 'Initializing',
-        text: 'Please wait...',
-      },
-      url,
+    this.setState({ url: this.props.store.networkEntryPoint }, () => {
+      this.props.store.onChange(this.onStoreChange);
+      this.onStoreChange();
+      if (window.opener) {
+        this.onWindowOpen();
+      }
     });
-
-    this.props.store.onChange(this.onStoreChange);
-    this.onStoreChange();
-    if (window.opener) {
-      this.onWindowOpen();
-    }
   }
 
   componentWillUnmount() {
@@ -530,10 +503,18 @@ export class Wallet extends React.Component {
   refreshBalance() {
     if (this.state.account) {
       this.runModal('Updating Account Balance', 'Please wait...', async () => {
-        this.setState({
-          balance: await this.web3sol.getBalance(this.state.account.publicKey),
-        });
+        if (this.web3sol) {
+          const url = this.state.url;
+          const balance = await this.web3sol.getBalance(this.state.account.publicKey);
+          if (url === this.state.url) {
+            this.setState({ balance });
+          }
+        } else {
+          this.addWarning(`Encountered unexpected error, please report!`);
+        }
       });
+    } else {
+      this.setState({ balance: 0 });
     }
   }
 

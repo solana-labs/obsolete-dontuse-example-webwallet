@@ -3,6 +3,7 @@ import EventEmitter from 'event-emitter';
 import * as web3 from '@solana/web3.js';
 import nacl from 'tweetnacl';
 import * as bip39 from 'bip39';
+import semver from 'semver';
 
 export class Store {
   constructor() {
@@ -22,17 +23,12 @@ export class Store {
     }
 
     if (typeof this.networkEntryPoint !== 'string') {
-      this.setNetworkEntryPoint(
+      await this.setNetworkEntryPoint(
         web3.testnetChannelEndpoint(process.env.CHANNEL),
       );
     } else {
-      const connection = new web3.Connection(this.networkEntryPoint);
-      connection.getRecentBlockhash().then(([, feeCalculator]) => {
-        this.setFeeCalculator(feeCalculator);
-      });
+      await this.resetConnection();
     }
-
-    this._ee.emit('change');
   }
 
   async resetAccount() {
@@ -49,10 +45,34 @@ export class Store {
     await this._lf.setItem('accountSecretKey', keyPair.secretKey);
   }
 
+  async resetConnection() {
+    const url = this.networkEntryPoint;
+    let connection = new web3.Connection(url);
+    let feeCalculator;
+    try {
+      [, feeCalculator] = await connection.getRecentBlockhash();
+      // commitment params are only supported >= 0.21.0
+      const version = await connection.getVersion();
+      const solanaCoreVersion = version['solana-core'].split(' ')[0];
+      if (semver.gte(solanaCoreVersion, '0.21.0')) {
+        connection = new web3.Connection(url, 'recent');
+      }
+    } catch (err) {
+      console.error('Failed to reset connection', err);
+      connection = null;
+    }
+
+    if (url === this.networkEntryPoint) {
+      this.setFeeCalculator(feeCalculator);
+      this.connection = connection;
+      this._ee.emit('change');
+    }
+  }
+
   async setNetworkEntryPoint(value) {
     if (value !== this.networkEntryPoint) {
       this.networkEntryPoint = value;
-      this._ee.emit('change');
+      await this.resetConnection();
       await this._lf.setItem('networkEntryPoint', value);
     }
   }
