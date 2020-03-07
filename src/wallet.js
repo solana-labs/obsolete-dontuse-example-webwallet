@@ -549,11 +549,11 @@ export class Wallet extends React.Component {
     this.runModal('Sending Transaction', 'Please wait...', async () => {
       const amount = this.state.recipientAmount;
       this.setState({requestedAmount: '', requestPending: false});
-      const transaction = web3.SystemProgram.transfer(
-        this.state.account.publicKey,
-        new web3.PublicKey(this.state.recipientPublicKey),
-        amount,
-      );
+      const transaction = web3.SystemProgram.transfer({
+        fromPubkey: this.state.account.publicKey,
+        toPubkey: new web3.PublicKey(this.state.recipientPublicKey),
+        lamports: amount,
+      });
 
       let signature = '';
       try {
